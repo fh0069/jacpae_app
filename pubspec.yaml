@@ -1,0 +1,33 @@
+name: jacpae_app
+description: "Flutter mobile app for company-client communication (PHASE 1: UI + Scaffolding)"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & Icons
+  cupertino_icons: ^1.0.6
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # State Management (lightweight for this phase)
+  flutter_riverpod: ^2.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+  # Assets (for future use)
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
