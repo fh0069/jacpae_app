@@ -22,6 +22,9 @@ dependencies:
   # Supabase Authentication
   supabase_flutter: ^2.5.0
 
+  # URL Launcher (for mailto links)
+  url_launcher: ^6.2.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -30,7 +33,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets (for future use)
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  # Assets
+  assets:
+    - assets/images/

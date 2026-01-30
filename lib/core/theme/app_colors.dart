@@ -14,6 +14,9 @@ class AppColors {
   static const Color secondaryDark = Color(0xFF00796B);
   static const Color secondaryLight = Color(0xFF4DB6AC);
 
+  // Brand colors
+  static const Color primaryOrange = Color(0xFFE28A1D);
+
   // Neutral colors
   static const Color background = Color(0xFFFAFAFA);
   static const Color surface = Color(0xFFFFFFFF);

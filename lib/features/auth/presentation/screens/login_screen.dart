@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../data/providers/auth_provider.dart';
+
+// Social media URLs placeholders - TODO: Add real URLs
+const String _instaUrl = '';
+const String _facebookUrl = '';
+const String _linkedinUrl = '';
+
+// Support email
+const String _supportEmail = 'soporte@prueba.com';
+
+// Company info
+const String _companyEmail = 'info@santiagovargas.com';
+const String _companyWeb = 'www.santiagovargas.com';
 
 /// Login screen - Real authentication with Supabase
 class LoginScreen extends ConsumerStatefulWidget {
@@ -93,135 +106,309 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return message;
   }
 
+  Future<void> _launchSupportEmail() async {
+    final Uri emailUri = Uri.parse('mailto:$_supportEmail');
+    try {
+      await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo abrir el cliente de correo: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppConstants.spacingL),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo/App Name
-                  Icon(
-                    Icons.business,
-                    size: 80,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(height: AppConstants.spacingM),
-                  Text(
-                    AppConstants.appName,
-                    style: Theme.of(context).textTheme.displayMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppConstants.spacingS),
-                  Text(
-                    'Comunicación empresa-cliente',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppConstants.spacingXL),
+        child: Column(
+          children: [
+            // Main scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacingL,
+                  vertical: AppConstants.spacingM,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: AppConstants.spacingL),
 
-                  // Email field
-                  CustomTextField(
-                    label: 'Email',
-                    hint: 'usuario@ejemplo.com',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.email),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingrese su email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Por favor ingrese un email válido';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppConstants.spacingM),
+                      // Logo
+                      _buildLogo(),
+                      const SizedBox(height: AppConstants.spacingM),
 
-                  // Password field
-                  CustomTextField(
-                    label: 'Contraseña',
-                    hint: '••••••••',
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      // Company name
+                      Text(
+                        'JOSÉ SANTIAGO VARGAS, S.A.',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                        textAlign: TextAlign.center,
                       ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingrese su contraseña';
-                      }
-                      if (value.length < 6) {
-                        return 'La contraseña debe tener al menos 6 caracteres';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppConstants.spacingXL),
+                      const SizedBox(height: AppConstants.spacingM),
 
-                  // Login button
-                  CustomButton(
-                    text: 'Iniciar Sesión',
-                    onPressed: _handleLogin,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: AppConstants.spacingM),
+                      // Orange divider line
+                      Center(
+                        child: Container(
+                          width: 60,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryOrange,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.spacingXL),
 
-                  // Auth notice
-                  Container(
-                    padding: const EdgeInsets.all(AppConstants.spacingM),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                      border: Border.all(color: AppColors.info),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
+                      // Email/User field
+                      CustomTextField(
+                        label: 'USUARIO O EMAIL',
+                        hint: 'usuario@ejemplo.com',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: const Icon(Icons.person),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingrese su email';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Por favor ingrese un email válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: AppConstants.spacingM),
+
+                      // Password field
+                      CustomTextField(
+                        label: 'CONTRASEÑA',
+                        hint: '••••••••',
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() => _obscurePassword = !_obscurePassword);
+                          },
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingrese su contraseña';
+                          }
+                          if (value.length < 10) {
+                            return 'La contraseña debe tener al menos 10 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: AppConstants.spacingXL),
+
+                      // Login button - Orange styled
+                      CustomButton(
+                        text: 'Iniciar Sesión',
+                        onPressed: _handleLogin,
+                        isLoading: _isLoading,
+                        backgroundColor: AppColors.primaryOrange,
+                      ),
+                      const SizedBox(height: AppConstants.spacingM),
+
+                      // Auth notice (MFA block - kept as is)
+                      Container(
+                        padding: const EdgeInsets.all(AppConstants.spacingM),
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppConstants.radiusM),
+                          border: Border.all(color: AppColors.info),
+                        ),
+                        child: Column(
                           children: [
-                            Icon(Icons.info_outline, color: AppColors.info, size: 20),
-                            const SizedBox(width: AppConstants.spacingS),
-                            Expanded(
-                              child: Text(
-                                'Autenticación segura con MFA',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: AppColors.info,
-                                    ),
-                              ),
+                            Row(
+                              children: [
+                                const Icon(Icons.info_outline,
+                                    color: AppColors.info, size: 20),
+                                const SizedBox(width: AppConstants.spacingS),
+                                Expanded(
+                                  child: Text(
+                                    'Autenticación segura con MFA',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: AppColors.info,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppConstants.spacingS),
+                            Text(
+                              'Se requiere verificación en dos pasos (TOTP) para acceder a la aplicación',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppColors.info,
+                                  ),
+                              textAlign: TextAlign.left,
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppConstants.spacingS),
-                        Text(
-                          'Se requiere verificación en dos pasos (TOTP) para acceder a la aplicación',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.info,
-                              ),
-                          textAlign: TextAlign.left,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: AppConstants.spacingL),
+
+                      // Support text with clickable link
+                      _buildSupportText(),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+
+            // Footer - always visible at bottom
+            _buildFooter(),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLogo() {
+    // Try to load the logo asset, fallback to icon if not available
+    return Image.asset(
+      'assets/images/logo.png',
+      height: 80,
+      errorBuilder: (context, error, stackTrace) {
+        // Fallback icon if logo.png is not found
+        return const Icon(
+          Icons.business,
+          size: 80,
+          color: AppColors.primaryOrange,
+        );
+      },
+    );
+  }
+
+  Widget _buildSupportText() {
+    // Simple centered text in white space between MFA block and footer
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        children: [
+          Text(
+            '¿No tienes cuenta o has olvidado la contraseña? ',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          GestureDetector(
+            onTap: _launchSupportEmail,
+            child: Text(
+              'Contacta con soporte.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.primary,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.primary,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Social media strip (light cyan background)
+        Container(
+          width: double.infinity,
+          color: const Color(0xFFEBFFFF),
+          padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingXS),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSocialIcon(
+                icon: Icons.camera_alt,
+                url: _instaUrl,
+                tooltip: 'Instagram',
+              ),
+              _buildSocialIcon(
+                icon: Icons.facebook,
+                url: _facebookUrl,
+                tooltip: 'Facebook',
+              ),
+              _buildSocialIcon(
+                icon: Icons.work,
+                url: _linkedinUrl,
+                tooltip: 'LinkedIn',
+              ),
+            ],
+          ),
+        ),
+
+        // Contact info strip (teal background)
+        Container(
+          width: double.infinity,
+          color: const Color(0xFF00A2BA),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppConstants.spacingXS,
+            horizontal: AppConstants.spacingM,
+          ),
+          child: Text(
+            'Email: $_companyEmail  •  Web: $_companyWeb',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white,
+                  fontSize: 11,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialIcon({
+    required IconData icon,
+    required String url,
+    required String tooltip,
+  }) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      color: const Color(0xFF00A2BA),
+      tooltip: tooltip,
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      padding: const EdgeInsets.all(6),
+      onPressed: url.isNotEmpty
+          ? () async {
+              final uri = Uri.parse(url);
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (e) {
+                // URL not configured yet
+              }
+            }
+          : null,
     );
   }
 }
