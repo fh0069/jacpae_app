@@ -1,4 +1,4 @@
-# JacPae App - PHASE 2: Authentication
+# Jacpae App - PHASE 2: Authentication
 
 > **✅ PHASE 2 - Real Authentication Implemented**
 >
