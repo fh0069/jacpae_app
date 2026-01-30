@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
-import '../../../auth/data/services/auth_service.dart';
+import '../../../auth/data/providers/auth_provider.dart';
 
 /// Ajustes/Settings screen
-class AjustesScreen extends StatelessWidget {
+class AjustesScreen extends ConsumerWidget {
   const AjustesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: const CustomAppBar(title: 'Ajustes'),
       body: ListView(
@@ -110,9 +112,21 @@ class AjustesScreen extends StatelessWidget {
               style: TextStyle(color: AppColors.error),
             ),
             onTap: () async {
-              await AuthService.instance.logout();
-              if (context.mounted) {
-                context.go(AppConstants.loginRoute);
+              final authService = ref.read(authServiceProvider);
+              try {
+                await authService.signOut();
+                if (context.mounted) {
+                  context.go(AppConstants.loginRoute);
+                }
+              } on AuthException catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al cerrar sesión: ${e.message}'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
               }
             },
           ),

@@ -1,48 +1,177 @@
-/// Authentication service placeholder
-/// TODO PHASE 2: Implement real authentication with Supabase
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Authentication service with Supabase
+/// Handles email/password authentication and MFA TOTP
 class AuthService {
-  AuthService._();
-  static final AuthService instance = AuthService._();
+  final SupabaseClient _supabase;
 
-  /// Simulate login - NO REAL AUTHENTICATION
-  /// TODO PHASE 2: Implement real login with Supabase
-  Future<bool> login(String email, String password) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+  AuthService(this._supabase);
 
-    // Always return success in Phase 1 (UI only)
-    return true;
+  /// Get current session
+  Session? get currentSession => _supabase.auth.currentSession;
+
+  /// Get current user
+  User? get currentUser => _supabase.auth.currentUser;
+
+  /// Stream of auth state changes
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
+
+  /// Check if user is authenticated
+  bool get isAuthenticated => currentSession != null;
+
+  /// Check if session is at AAL2 (MFA verified)
+  bool get isAAL2 {
+    try {
+      final level = _supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      return level.currentLevel == AuthenticatorAssuranceLevels.aal2;
+    } catch (e) {
+      return false;
+    }
   }
 
-  /// Simulate logout - NO REAL LOGIC
-  /// TODO PHASE 2: Implement real logout with Supabase
-  Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // No actual logout logic in Phase 1
+  /// Sign in with email and password
+  /// Returns session if successful
+  /// Throws AuthException on failure
+  Future<AuthResponse> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      return response;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al iniciar sesión: $e');
+    }
   }
 
-  /// Check if user is authenticated - ALWAYS FALSE IN PHASE 1
-  /// TODO PHASE 2: Implement real session check with Supabase
-  Future<bool> isAuthenticated() async {
-    // Always false in Phase 1 - user must login each time
-    return false;
+  /// Sign out current user
+  Future<void> signOut() async {
+    try {
+      await _supabase.auth.signOut();
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al cerrar sesión: $e');
+    }
   }
 
-  /// Get current user - NOT IMPLEMENTED
-  /// TODO PHASE 2: Implement real user retrieval from Supabase
-  Future<Map<String, dynamic>?> getCurrentUser() async {
-    throw UnimplementedError('TODO PHASE 2: Implement Supabase user retrieval');
+  /// Get list of MFA factors for current user
+  Future<AuthMFAListFactorsResponse> getMFAFactors() async {
+    try {
+      final factors = await _supabase.auth.mfa.listFactors();
+      return factors;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al obtener factores MFA: $e');
+    }
   }
 
-  /// Register user - NOT IMPLEMENTED
-  /// TODO PHASE 2: Implement real registration with Supabase
-  Future<bool> register(String email, String password, String name) async {
-    throw UnimplementedError('TODO PHASE 2: Implement Supabase registration');
+  /// Check if user has TOTP factor enrolled
+  Future<bool> hasTOTPFactor() async {
+    final response = await getMFAFactors();
+    return response.totp.isNotEmpty;
   }
 
-  /// Reset password - NOT IMPLEMENTED
-  /// TODO PHASE 2: Implement real password reset with Supabase
-  Future<void> resetPassword(String email) async {
-    throw UnimplementedError('TODO PHASE 2: Implement Supabase password reset');
+  /// Enroll TOTP factor
+  /// Returns AuthMFAEnrollResponse with QR code URI and secret
+  Future<AuthMFAEnrollResponse> enrollTOTP({String? issuer}) async {
+    try {
+      final response = await _supabase.auth.mfa.enroll(
+        factorType: FactorType.totp,
+        issuer: issuer,
+      );
+      return response;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al configurar TOTP: $e');
+    }
+  }
+
+  /// Create MFA challenge for verification
+  /// Returns challenge ID
+  Future<String> createMFAChallenge({required String factorId}) async {
+    try {
+      final challenge = await _supabase.auth.mfa.challenge(
+        factorId: factorId,
+      );
+      return challenge.id;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al crear desafío MFA: $e');
+    }
+  }
+
+  /// Verify MFA challenge with TOTP code
+  /// Returns updated session with AAL2
+  Future<AuthMFAVerifyResponse> verifyMFA({
+    required String factorId,
+    required String challengeId,
+    required String code,
+  }) async {
+    try {
+      final response = await _supabase.auth.mfa.verify(
+        factorId: factorId,
+        challengeId: challengeId,
+        code: code,
+      );
+      return response;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al verificar código: $e');
+    }
+  }
+
+  /// Challenge and verify MFA in one call (for already enrolled factors)
+  Future<AuthMFAVerifyResponse> challengeAndVerifyMFA({
+    required String factorId,
+    required String code,
+  }) async {
+    try {
+      // Create challenge first
+      final challengeId = await createMFAChallenge(factorId: factorId);
+
+      // Verify with code
+      return await verifyMFA(
+        factorId: factorId,
+        challengeId: challengeId,
+        code: code,
+      );
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al verificar MFA: $e');
+    }
+  }
+
+  /// Unenroll MFA factor (remove TOTP)
+  Future<AuthMFAUnenrollResponse> unenrollMFA({required String factorId}) async {
+    try {
+      final response = await _supabase.auth.mfa.unenroll(factorId);
+      return response;
+    } on AuthException catch (e) {
+      throw AuthException(e.message);
+    } catch (e) {
+      throw AuthException('Error al remover factor MFA: $e');
+    }
+  }
+
+  /// Get Assurance Level (AAL1 or AAL2)
+  /// AAL1 = password only, AAL2 = password + MFA
+  String? getAssuranceLevel() {
+    try {
+      final level = _supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      return level.currentLevel?.name;
+    } catch (e) {
+      return null;
+    }
   }
 }

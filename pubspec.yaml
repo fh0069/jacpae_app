@@ -19,6 +19,9 @@ dependencies:
   # State Management (lightweight for this phase)
   flutter_riverpod: ^2.5.1
 
+  # Supabase Authentication
+  supabase_flutter: ^2.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

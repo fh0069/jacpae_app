@@ -8,6 +8,8 @@ class AppConstants {
 
   // Route names
   static const String loginRoute = '/';
+  static const String mfaEnrollRoute = '/mfa/enroll';
+  static const String mfaVerifyRoute = '/mfa/verify';
   static const String homeRoute = '/home';
   static const String consultasRoute = '/consultas';
   static const String consultaDetailRoute = '/consultas/:id';

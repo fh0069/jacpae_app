@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../auth/data/providers/auth_provider.dart';
 import '../../data/models/dashboard_item.dart';
 import '../widgets/dashboard_card.dart';
 
 /// Home/Dashboard screen with navigation menu
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   // Mock dashboard items
@@ -59,8 +62,67 @@ class HomeScreen extends StatelessWidget {
         ),
       ];
 
+  Future<void> _showProfileMenu(BuildContext context, WidgetRef ref) async {
+    final authState = ref.read(authStateProvider);
+    final authService = ref.read(authServiceProvider);
+    final user = authState.user;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Perfil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (user != null) ...[
+              Text('Email: ${user.email ?? 'N/A'}'),
+              const SizedBox(height: 8),
+              Text('ID: ${user.id}'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.verified_user, size: 16, color: Colors.green),
+                  const SizedBox(width: 4),
+                  const Text('MFA Activado'),
+                ],
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              try {
+                await authService.signOut();
+                if (context.mounted) {
+                  context.go(AppConstants.loginRoute);
+                }
+              } on AuthException catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al cerrar sesión: ${e.message}'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Cerrar Sesión'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Inicio',
@@ -68,9 +130,7 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
-            onPressed: () {
-              // TODO PHASE 2: Navigate to profile
-            },
+            onPressed: () => _showProfileMenu(context, ref),
           ),
         ],
       ),
@@ -92,24 +152,24 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppConstants.spacingL),
 
-              // Phase 1 notice
+              // Auth status notice
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppConstants.spacingM),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                  border: Border.all(color: AppColors.info),
+                  border: Border.all(color: Colors.green),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.info),
+                    const Icon(Icons.check_circle, color: Colors.green),
                     const SizedBox(width: AppConstants.spacingM),
                     Expanded(
                       child: Text(
-                        'FASE 1: Todas las funciones usan datos de prueba',
+                        'Autenticado con MFA (AAL2)',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.info,
+                              color: Colors.green,
                             ),
                       ),
                     ),
