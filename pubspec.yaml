@@ -25,6 +25,9 @@ dependencies:
   # URL Launcher (for mailto links)
   url_launcher: ^6.2.5
 
+  # HTTP Client for API calls
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
