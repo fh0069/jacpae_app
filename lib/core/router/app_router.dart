@@ -7,6 +7,7 @@ import '../../features/auth/data/providers/auth_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/consultas/presentation/screens/consultas_screen.dart';
 import '../../features/consultas/presentation/screens/consulta_detail_screen.dart';
+import '../../features/invoices/presentation/screens/invoices_screen.dart';
 import '../../features/pagos/presentation/screens/pagos_screen.dart';
 import '../../features/pagos/presentation/screens/pago_detail_screen.dart';
 import '../../features/notificaciones/presentation/screens/notificaciones_screen.dart';
@@ -104,6 +105,11 @@ class AppRouter {
           name: 'consultas',
           builder: (context, state) => const ConsultasScreen(),
           routes: [
+            GoRoute(
+              path: 'facturas',
+              name: 'facturas',
+              builder: (context, state) => const InvoicesScreen(),
+            ),
             GoRoute(
               path: ':id',
               name: 'consulta-detail',

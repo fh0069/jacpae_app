@@ -13,6 +13,7 @@ class AppConstants {
   static const String homeRoute = '/home';
   static const String consultasRoute = '/consultas';
   static const String consultaDetailRoute = '/consultas/:id';
+  static const String facturasRoute = '/consultas/facturas';
   static const String pagosRoute = '/pagos';
   static const String pagoDetailRoute = '/pagos/:id';
   static const String notificacionesRoute = '/notificaciones';

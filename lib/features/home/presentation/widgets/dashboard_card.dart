@@ -40,8 +40,8 @@ class DashboardCard extends StatelessWidget {
                       top: -8,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEB5C00), // Naranja corporativo
                           shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(

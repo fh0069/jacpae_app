@@ -1,34 +1,72 @@
 import 'package:flutter/material.dart';
 
-/// App color palette - Material 3 based
+/// App color palette - Colores corporativos JacPae
+/// Basado en referencias visuales de Santiago Vargas S.A.
 class AppColors {
   AppColors._();
 
-  // Primary colors
-  static const Color primary = Color(0xFF1976D2);
-  static const Color primaryDark = Color(0xFF0D47A1);
-  static const Color primaryLight = Color(0xFF42A5F5);
+  // ============================================
+  // COLORES PRINCIPALES CORPORATIVOS
+  // ============================================
 
-  // Secondary colors
-  static const Color secondary = Color(0xFF26A69A);
-  static const Color secondaryDark = Color(0xFF00796B);
-  static const Color secondaryLight = Color(0xFF4DB6AC);
+  /// Azul corporativo (marca/navegación) - #00AEC7
+  static const Color primary = Color(0xFF00AEC7);
 
-  // Brand colors
-  static const Color primaryOrange = Color(0xFFE28A1D);
+  /// Naranja CTA (botones de acción) - #EB5C00
+  static const Color accent = Color(0xFFEB5C00);
 
-  // Neutral colors
-  static const Color background = Color(0xFFFAFAFA);
+  // ============================================
+  // FONDOS Y SUPERFICIES
+  // ============================================
+
+  /// Fondo general de la app - gris muy claro
+  static const Color background = Color(0xFFF2F4F6);
+
+  /// Superficies/Cards - blanco
   static const Color surface = Color(0xFFFFFFFF);
+
+  // ============================================
+  // TEXTOS
+  // ============================================
+
+  /// Texto principal - gris oscuro
+  static const Color textPrimary = Color(0xFF2E2E2E);
+
+  /// Texto secundario - gris medio
+  static const Color textSecondary = Color(0xFF6B7280);
+
+  /// Texto deshabilitado - gris claro
+  static const Color disabled = Color(0xFFC7CCD1);
+
+  // ============================================
+  // ESTADOS
+  // ============================================
+
+  /// Error - rojo sobrio
   static const Color error = Color(0xFFD32F2F);
 
-  // Text colors
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
-  static const Color textDisabled = Color(0xFFBDBDBD);
-
-  // Status colors
+  /// Éxito - verde
   static const Color success = Color(0xFF4CAF50);
+
+  /// Advertencia - naranja claro
   static const Color warning = Color(0xFFFFA726);
+
+  /// Info - azul claro
   static const Color info = Color(0xFF2196F3);
+
+  // ============================================
+  // ALIASES (compatibilidad con código existente)
+  // ============================================
+
+  /// Alias de [accent] para compatibilidad
+  static const Color secondary = accent;
+
+  /// @deprecated Usar [primary] en su lugar
+  static const Color primaryBlue = primary;
+
+  /// @deprecated Usar [accent] en su lugar
+  static const Color primaryOrange = accent;
+
+  /// @deprecated Usar [disabled] en su lugar
+  static const Color textDisabled = disabled;
 }

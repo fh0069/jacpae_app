@@ -7,7 +7,7 @@ import 'app.dart';
 ///
 /// IMPORTANT: Run with dart-define variables:
 /// ```
-/// flutter run --dart-define=SUPABASE_URL=your_supabase_url --dart-define=SUPABASE_ANON_KEY=your_anon_key
+/// flutter run --dart-define=SUPABASE_URL=your_supabase_url --dart-define=SUPABASE_ANON_KEY=your_anon_key --dart-define=API_BASE_URL=http://localhost:8000
 /// ```
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
