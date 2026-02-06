@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 
-/// Historial screen with mock activity data
+/// Historial screen - En desarrollo
 class HistorialScreen extends StatefulWidget {
   const HistorialScreen({super.key});
 
@@ -100,74 +99,48 @@ class _HistorialScreenState extends State<HistorialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final actividades = [
-      {
-        'accion': 'Inicio de sesión',
-        'fecha': DateTime.now().subtract(const Duration(hours: 1)),
-        'icono': Icons.login,
-        'color': AppColors.success
-      },
-      {
-        'accion': 'Consulta creada',
-        'fecha': DateTime.now().subtract(const Duration(days: 2)),
-        'icono': Icons.question_answer,
-        'color': AppColors.primary
-      },
-      {
-        'accion': 'Factura descargada',
-        'fecha': DateTime.now().subtract(const Duration(days: 3)),
-        'icono': Icons.download,
-        'color': AppColors.info
-      },
-      {
-        'accion': 'Pago realizado',
-        'fecha': DateTime.now().subtract(const Duration(days: 35)),
-        'icono': Icons.payment,
-        'color': AppColors.success
-      },
-      {
-        'accion': 'Perfil actualizado',
-        'fecha': DateTime.now().subtract(const Duration(days: 60)),
-        'icono': Icons.person,
-        'color': AppColors.secondary
-      },
-    ];
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: AppScaffold(
-        // showBottomNav: true (default) → footer visible, bottomNavIndex: null → sin selección
+        // Footer visible, sin tab seleccionado
         showInfoBar: false,
         body: Column(
           children: [
             // Header corporativo
             _buildCustomHeader(context),
 
-            // Lista de actividades
+            // Estado "En desarrollo"
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppConstants.spacingM),
-                itemCount: actividades.length,
-                itemBuilder: (context, index) {
-                  final actividad = actividades[index];
-                  final fecha = actividad['fecha'] as DateTime;
-                  final icono = actividad['icono'] as IconData;
-                  final color = actividad['color'] as Color;
-
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: color.withValues(alpha: 0.2),
-                        child: Icon(icono, color: color),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.history_outlined,
+                        size: 80,
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
-                      title: Text(actividad['accion'] as String),
-                      subtitle: Text(
-                        '${fecha.day}/${fecha.month}/${fecha.year} - ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}',
+                      const SizedBox(height: 24),
+                      Text(
+                        'En desarrollo',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
-                    ),
-                  );
-                },
+                      const SizedBox(height: 8),
+                      Text(
+                        'Disponible en próximas versiones',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],

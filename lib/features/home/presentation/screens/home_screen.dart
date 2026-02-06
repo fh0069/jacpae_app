@@ -67,7 +67,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           icon: Icons.payment,
           color: AppColors.secondary,
           route: AppConstants.pagosRoute,
-          badgeCount: 1,
         ),
         DashboardItem(
           title: 'Notificaciones',
