@@ -46,6 +46,7 @@ class DateFilterSection extends StatelessWidget {
       helpText: 'Seleccionar fecha desde',
       cancelText: 'Cancelar',
       confirmText: 'Aceptar',
+      locale: const Locale('es', 'ES'), // Español, semana empieza en lunes
     );
 
     if (picked != null && picked != fromDate) {
@@ -62,6 +63,7 @@ class DateFilterSection extends StatelessWidget {
       helpText: 'Seleccionar fecha hasta',
       cancelText: 'Cancelar',
       confirmText: 'Aceptar',
+      locale: const Locale('es', 'ES'), // Español, semana empieza en lunes
     );
 
     if (picked != null && picked != toDate) {
