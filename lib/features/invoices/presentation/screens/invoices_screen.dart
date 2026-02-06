@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
 import '../../data/models/invoice.dart';
 import '../../data/repositories/invoices_repository.dart';
 import '../widgets/date_filter_section.dart';
@@ -28,6 +29,24 @@ class InvoicesScreen extends StatefulWidget {
 }
 
 class _InvoicesScreenState extends State<InvoicesScreen> {
+  // Colores del patrón visual corporativo
+  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
+  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+
+  // Estilo para iconos blancos en status bar
+  static const _lightStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  );
+
+  // Estilo neutro para restaurar al salir
+  static const _defaultStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  );
+
   // State management
   InvoicesScreenState _screenState = InvoicesScreenState.initial;
   String? _errorMessage;
@@ -49,9 +68,70 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
     _initializeDates();
     _initializeRepository();
     // No carga automáticamente - espera a que el usuario pulse "Aplicar filtro"
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setSystemUIOverlayStyle(_defaultStatusBarStyle);
+    super.dispose();
+  }
+
+  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
+  Widget _buildCustomHeader(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Franja naranja (status bar)
+        Container(
+          width: double.infinity,
+          height: statusBarHeight,
+          color: _statusBarColor,
+        ),
+        // AppBar gris
+        Container(
+          width: double.infinity,
+          height: kToolbarHeight,
+          color: _appBarColor,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              // Botón back
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                onPressed: () => context.go(AppConstants.consultasRoute),
+              ),
+              // Título
+              const Text(
+                'Consulta de Facturas',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+              ),
+              // Logo centrado
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              // Espacio para equilibrar
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   void _initializeDates() {
@@ -164,27 +244,34 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      appBar: const CustomAppBar(title: 'Consulta de Facturas'),
-      body: Column(
-        children: [
-          // Date filters
-          DateFilterSection(
-            fromDate: _fromDate,
-            toDate: _toDate,
-            onFromDateChanged: _onFromDateChanged,
-            onToDateChanged: _onToDateChanged,
-            onApplyFilter: _applyFilter,
-          ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _lightStatusBarStyle,
+      child: AppScaffold(
+        // bottomNavIndex: null → sin tab seleccionado (todos grises)
+        showInfoBar: false,
+        body: Column(
+          children: [
+            // Header corporativo
+            _buildCustomHeader(context),
 
-          // Tab segments
-          _buildTabSegments(),
+            // Date filters
+            DateFilterSection(
+              fromDate: _fromDate,
+              toDate: _toDate,
+              onFromDateChanged: _onFromDateChanged,
+              onToDateChanged: _onToDateChanged,
+              onApplyFilter: _applyFilter,
+            ),
 
-          // Content based on state
-          Expanded(
-            child: _buildContent(),
-          ),
-        ],
+            // Tab segments
+            _buildTabSegments(),
+
+            // Content based on state
+            Expanded(
+              child: _buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }

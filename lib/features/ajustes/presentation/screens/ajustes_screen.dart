@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/widgets/app_scaffold.dart';
 import '../../../auth/data/providers/auth_provider.dart';
 
 /// Ajustes/Settings screen
@@ -16,10 +17,28 @@ class AjustesScreen extends ConsumerStatefulWidget {
 }
 
 class _AjustesScreenState extends ConsumerState<AjustesScreen> {
+  // Colores del patrón visual corporativo
+  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
+  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+
+  // Estilo para iconos blancos en status bar
+  static const _lightStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  );
+
+  // Estilo neutro para restaurar al salir
+  static const _defaultStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  );
+
   // ============================================
   // ESTADO LOCAL - Preferencias de notificaciones (mock)
   // ============================================
-  bool _avisoCarga = true;
+  bool _avisoReparto = true;
   bool _avisoFacturaEmitida = true;
   int _avisoGiroDias = 3; // Días antes del vencimiento
   bool _recibirOfertas = false;
@@ -28,10 +47,82 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
   static const List<int> _opcionesDiasGiro = [0, 1, 3, 5, 7, 10, 15];
 
   @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setSystemUIOverlayStyle(_defaultStatusBarStyle);
+    super.dispose();
+  }
+
+  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
+  Widget _buildCustomHeader(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Franja naranja (status bar)
+        Container(
+          width: double.infinity,
+          height: statusBarHeight,
+          color: _statusBarColor,
+        ),
+        // AppBar gris
+        Container(
+          width: double.infinity,
+          height: kToolbarHeight,
+          color: _appBarColor,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              // Título
+              const Text(
+                'Ajustes',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+              ),
+              // Logo centrado
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              // Espacio para equilibrar
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(title: 'Ajustes'),
-      body: ListView(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _lightStatusBarStyle,
+      child: AppScaffold(
+        bottomNavIndex: 3, // Tab Ajustes
+        showInfoBar: false,
+        body: Column(
+          children: [
+            // Header corporativo
+            _buildCustomHeader(context),
+
+            // Contenido scrollable
+            Expanded(
+              child: ListView(
         padding: const EdgeInsets.all(AppConstants.spacingM),
         children: [
           // ========== SECCIÓN: NOTIFICACIONES ==========
@@ -39,13 +130,13 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
             context,
             'Notificaciones',
             [
-              // A) Aviso de carga
+              // A) Aviso de reparto
               _buildSwitchTile(
                 title: 'Aviso de reparto',
                 subtitle: 'Recibirá una notificación 2 días antes del reparto programado',
-                icon: Icons.inventory_2_outlined,
-                value: _avisoCarga,
-                onChanged: (value) => setState(() => _avisoCarga = value),
+                icon: Icons.local_shipping_outlined,
+                value: _avisoReparto,
+                onChanged: (value) => setState(() => _avisoReparto = value),
               ),
               const Divider(height: 1),
 
@@ -146,6 +237,10 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
             },
           ),
         ],
+      ),
+            ),
+          ],
+        ),
       ),
     );
   }

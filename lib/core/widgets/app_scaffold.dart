@@ -22,8 +22,8 @@ class AppScaffold extends StatelessWidget {
   final Widget body;
   final bool showBottomNav;
   final bool showInfoBar;
-  final int bottomNavIndex;
-  final ValueChanged<int>? onBottomNavTap;
+  /// Índice del tab seleccionado. Si es null, no hay selección (todos grises).
+  final int? bottomNavIndex;
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Color? backgroundColor;
@@ -34,8 +34,7 @@ class AppScaffold extends StatelessWidget {
     required this.body,
     this.showBottomNav = true,
     this.showInfoBar = true,
-    this.bottomNavIndex = 0,
-    this.onBottomNavTap,
+    this.bottomNavIndex,
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.backgroundColor,
@@ -59,7 +58,6 @@ class AppScaffold extends StatelessWidget {
           if (showBottomNav)
             AppBottomNavBar(
               currentIndex: bottomNavIndex,
-              onTap: onBottomNavTap,
             ),
 
           // Info bar (si está habilitada)

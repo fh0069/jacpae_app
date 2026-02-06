@@ -1,66 +1,169 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
 
 /// Consultas menu screen with navigation options
 /// Shows three categories: Facturas (enabled), Albaranes (disabled), Pedidos (disabled)
-class ConsultasScreen extends StatelessWidget {
+class ConsultasScreen extends StatefulWidget {
   const ConsultasScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      appBar: const CustomAppBar(title: 'Consultas'),
-      body: ListView(
-        padding: const EdgeInsets.all(AppConstants.spacingM),
-        children: [
-          // Header text
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppConstants.spacingL),
-            child: Text(
-              'Selecciona el tipo de documento que deseas consultar',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+  State<ConsultasScreen> createState() => _ConsultasScreenState();
+}
+
+class _ConsultasScreenState extends State<ConsultasScreen> {
+  // Colores del patrón visual corporativo
+  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
+  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+
+  // Estilo para iconos blancos en status bar
+  static const _lightStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  );
+
+  // Estilo neutro para restaurar al salir
+  static const _defaultStatusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setSystemUIOverlayStyle(_defaultStatusBarStyle);
+    super.dispose();
+  }
+
+  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
+  Widget _buildCustomHeader(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Franja naranja (status bar)
+        Container(
+          width: double.infinity,
+          height: statusBarHeight,
+          color: _statusBarColor,
+        ),
+        // AppBar gris
+        Container(
+          width: double.infinity,
+          height: kToolbarHeight,
+          color: _appBarColor,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              // Botón back
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                onPressed: () => context.go(AppConstants.homeRoute),
+              ),
+              // Título
+              const Text(
+                'Consultas',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+              ),
+              // Logo centrado
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
                   ),
+                ),
+              ),
+              // Espacio para equilibrar
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _lightStatusBarStyle,
+      child: AppScaffold(
+        bottomNavIndex: 1,
+        showInfoBar: false,
+        body: Column(
+          children: [
+            // Header corporativo
+            _buildCustomHeader(context),
+
+            // Contenido
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(AppConstants.spacingM),
+                children: [
+                  // Header text
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppConstants.spacingL),
+                    child: Text(
+                      'Selecciona el tipo de documento que deseas consultar',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                  ),
+
+                  // Facturas - Enabled
+                  _ConsultaOptionCard(
+                    icon: Icons.receipt_long,
+                    title: 'Facturas',
+                    subtitle: 'Consulta tus facturas emitidas',
+                    enabled: true,
+                    onTap: () => context.push(AppConstants.facturasRoute),
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingM),
+
+                  // Albaranes - Disabled
+                  _ConsultaOptionCard(
+                    icon: Icons.local_shipping,
+                    title: 'Albaranes',
+                    subtitle: 'Consulta tus albaranes de entrega',
+                    enabled: false,
+                    badge: 'Próximamente',
+                    onTap: () => _showComingSoonSnackbar(context, 'Albaranes'),
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingM),
+
+                  // Pedidos - Disabled
+                  _ConsultaOptionCard(
+                    icon: Icons.shopping_cart,
+                    title: 'Pedidos',
+                    subtitle: 'Consulta el estado de tus pedidos',
+                    enabled: false,
+                    badge: 'Próximamente',
+                    onTap: () => _showComingSoonSnackbar(context, 'Pedidos'),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          // Facturas - Enabled
-          _ConsultaOptionCard(
-            icon: Icons.receipt_long,
-            title: 'Facturas',
-            subtitle: 'Consulta tus facturas emitidas',
-            enabled: true,
-            onTap: () => context.push(AppConstants.facturasRoute),
-          ),
-
-          const SizedBox(height: AppConstants.spacingM),
-
-          // Albaranes - Disabled
-          _ConsultaOptionCard(
-            icon: Icons.local_shipping,
-            title: 'Albaranes',
-            subtitle: 'Consulta tus albaranes de entrega',
-            enabled: false,
-            badge: 'Próximamente',
-            onTap: () => _showComingSoonSnackbar(context, 'Albaranes'),
-          ),
-
-          const SizedBox(height: AppConstants.spacingM),
-
-          // Pedidos - Disabled
-          _ConsultaOptionCard(
-            icon: Icons.shopping_cart,
-            title: 'Pedidos',
-            subtitle: 'Consulta el estado de tus pedidos',
-            enabled: false,
-            badge: 'Próximamente',
-            onTap: () => _showComingSoonSnackbar(context, 'Pedidos'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -98,7 +201,7 @@ class _ConsultaOptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardColor = enabled
         ? Theme.of(context).cardColor
-        : Theme.of(context).cardColor.withOpacity(0.6);
+        : Theme.of(context).cardColor.withValues(alpha: 0.6);
 
     final iconColor = enabled ? AppColors.primary : AppColors.textSecondary;
     final textColor = enabled ? null : AppColors.textSecondary;
@@ -118,7 +221,7 @@ class _ConsultaOptionCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusM),
                 ),
                 child: Icon(
@@ -153,7 +256,7 @@ class _ConsultaOptionCard extends StatelessWidget {
                               vertical: AppConstants.spacingXS,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.info.withOpacity(0.2),
+                              color: AppColors.info.withValues(alpha: 0.2),
                               borderRadius:
                                   BorderRadius.circular(AppConstants.radiusS),
                             ),
@@ -184,7 +287,9 @@ class _ConsultaOptionCard extends StatelessWidget {
               Icon(
                 enabled ? Icons.arrow_forward_ios : Icons.lock_outline,
                 size: 16,
-                color: enabled ? AppColors.textSecondary : AppColors.textSecondary.withOpacity(0.5),
+                color: enabled
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondary.withValues(alpha: 0.5),
               ),
             ],
           ),

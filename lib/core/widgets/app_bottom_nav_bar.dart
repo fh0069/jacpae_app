@@ -1,43 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../constants/app_constants.dart';
 import '../theme/app_colors.dart';
 
-/// Bottom navigation bar corporativo (mock)
+/// Bottom navigation bar corporativo definitivo
 ///
-/// Items: Inicio | Efectos | Ajustes | Perfil
-/// Solo "Inicio" está activo, el resto muestra "Próximamente"
+/// Tabs: Inicio | Consultas | Notificaciones | Ajustes
+///
+/// Si [currentIndex] es null, no hay tab seleccionado (todos grises).
 class AppBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int>? onTap;
+  /// Índice del tab seleccionado. Si es null, no hay selección.
+  final int? currentIndex;
 
   const AppBottomNavBar({
     super.key,
-    this.currentIndex = 0,
-    this.onTap,
+    this.currentIndex,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Si no hay selección, usamos widget custom con todos grises
+    if (currentIndex == null) {
+      return _buildNoSelectionBar(context);
+    }
+
     return Container(
       // Sin sombra - flat design
       color: AppColors.surface,
       child: SafeArea(
         top: false,
         child: BottomNavigationBar(
-          currentIndex: currentIndex,
+          currentIndex: currentIndex!,
           elevation: 0, // Sin sombra
-          onTap: (index) {
-            if (index == 0) {
-              // Solo Inicio está activo
-              onTap?.call(index);
-            } else {
-              // Los demás muestran snackbar
-              _showComingSoon(context, _getItemLabel(index));
-            }
-          },
+          onTap: (index) => _onItemTapped(context, index),
           type: BottomNavigationBarType.fixed,
           backgroundColor: AppColors.surface,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
+          selectedItemColor: AppColors.primary, // Azul corporativo #00AEC7
+          unselectedItemColor: AppColors.textSecondary, // Gris
           selectedFontSize: 12,
           unselectedFontSize: 12,
           items: const [
@@ -47,19 +46,19 @@ class AppBottomNavBar extends StatelessWidget {
               label: 'Inicio',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Efectos',
+              icon: Icon(Icons.folder_outlined),
+              activeIcon: Icon(Icons.folder),
+              label: 'Consultas',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_outlined),
+              activeIcon: Icon(Icons.notifications),
+              label: 'Notificaciones',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
               activeIcon: Icon(Icons.settings),
               label: 'Ajustes',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Perfil',
             ),
           ],
         ),
@@ -67,26 +66,83 @@ class AppBottomNavBar extends StatelessWidget {
     );
   }
 
-  String _getItemLabel(int index) {
-    switch (index) {
-      case 1:
-        return 'Efectos';
-      case 2:
-        return 'Ajustes';
-      case 3:
-        return 'Perfil';
-      default:
-        return '';
-    }
-  }
+  /// Footer sin ningún tab seleccionado (todos grises)
+  Widget _buildNoSelectionBar(BuildContext context) {
+    const items = [
+      {'icon': Icons.home_outlined, 'label': 'Inicio'},
+      {'icon': Icons.folder_outlined, 'label': 'Consultas'},
+      {'icon': Icons.notifications_outlined, 'label': 'Notificaciones'},
+      {'icon': Icons.settings_outlined, 'label': 'Ajustes'},
+    ];
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature estará disponible próximamente'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+    return Container(
+      color: AppColors.surface,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: kBottomNavigationBarHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              return Expanded(
+                child: InkWell(
+                  onTap: () => _onItemTapped(context, index),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        item['icon'] as IconData,
+                        color: AppColors.textSecondary,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item['label'] as String,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    // Obtener la ruta destino según el índice
+    final String targetRoute;
+    switch (index) {
+      case 0:
+        targetRoute = AppConstants.homeRoute;
+        break;
+      case 1:
+        targetRoute = AppConstants.consultasRoute;
+        break;
+      case 2:
+        targetRoute = AppConstants.notificacionesRoute;
+        break;
+      case 3:
+        targetRoute = AppConstants.ajustesRoute;
+        break;
+      default:
+        return;
+    }
+
+    // Obtener la ruta actual
+    final currentLocation = GoRouterState.of(context).uri.path;
+
+    // Solo evitar navegar si ya estamos EXACTAMENTE en esa ruta
+    // (permite navegar desde subrutas como /consultas/facturas a /consultas)
+    if (currentLocation == targetRoute) return;
+
+    // Navegar a la ruta destino
+    context.go(targetRoute);
   }
 }

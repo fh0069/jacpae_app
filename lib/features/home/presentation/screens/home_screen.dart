@@ -55,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<DashboardItem> get _dashboardItems => [
         DashboardItem(
           title: 'Consultas',
-          subtitle: 'Ver y crear consultas',
+          subtitle: 'Facturas, albaranes o pedidos',
           icon: Icons.question_answer,
           color: AppColors.primary,
           route: AppConstants.consultasRoute,
@@ -218,6 +218,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: AppScaffold(
+        bottomNavIndex: 0, // Tab Inicio seleccionado
         showInfoBar: false, // Sin footer de redes sociales
         // SIN appBar - lo pintamos manualmente en el body
         body: Column(
