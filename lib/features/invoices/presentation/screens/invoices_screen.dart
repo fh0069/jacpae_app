@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_exception.dart';
@@ -142,11 +143,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   }
 
   void _initializeRepository() {
-    const apiBaseUrl = String.fromEnvironment('API_BASE_URL');
-    if (apiBaseUrl.isEmpty) {
+    final apiBaseUrl = dotenv.env['API_BASE_URL'];
+    if (apiBaseUrl == null || apiBaseUrl.isEmpty) {
       setState(() {
         _screenState = InvoicesScreenState.error;
-        _errorMessage = 'API_BASE_URL no configurada. Contacta con soporte.';
+        _errorMessage = 'API_BASE_URL no configurada en .env. Contacta con soporte.';
       });
       return;
     }

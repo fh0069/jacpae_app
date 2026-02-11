@@ -1,26 +1,36 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 
 /// Entry point of the application
 ///
-/// IMPORTANT: Run with dart-define variables:
-/// ```
-/// flutter run --dart-define=SUPABASE_URL=your_supabase_url --dart-define=SUPABASE_ANON_KEY=your_anon_key --dart-define=API_BASE_URL=http://localhost:8000
-/// ```
+/// Configuration is loaded from the .env file at the project root.
+/// Required variables: SUPABASE_URL, SUPABASE_ANON_KEY, API_BASE_URL
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Get Supabase credentials from dart-define
-  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  // Load environment variables from .env (MUST be before any usage)
+  await dotenv.load(fileName: '.env');
+
+  // Diagnostic log — only in debug mode, never prints tokens
+  if (kDebugMode) {
+    print('[ENV] API_BASE_URL = ${dotenv.env['API_BASE_URL']}');
+    print('[ENV] SUPABASE_URL = ${dotenv.env['SUPABASE_URL']}');
+    // NEVER print SUPABASE_ANON_KEY or tokens
+  }
+
+  // Read Supabase credentials from .env
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
   // Validate credentials are provided
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
     throw Exception(
-      'Supabase credentials not found!\n'
-      'Run with: flutter run --dart-define=SUPABASE_URL=your_url --dart-define=SUPABASE_ANON_KEY=your_key',
+      'Supabase credentials not found in .env!\n'
+      'Ensure .env contains SUPABASE_URL and SUPABASE_ANON_KEY.',
     );
   }
 
