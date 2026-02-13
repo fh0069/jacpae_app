@@ -33,6 +33,12 @@ dependencies:
   # HTTP Client for API calls
   http: ^1.2.0
 
+  # File system paths
+  path_provider: ^2.1.5
+
+  # Open files with native apps
+  open_filex: ^4.5.0
+
   # Environment variables from .env file
   flutter_dotenv: ^5.2.1
 

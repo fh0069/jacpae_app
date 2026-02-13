@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 
@@ -43,21 +44,37 @@ class ApiClient {
     return _handleResponse(response);
   }
 
-  Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    if (queryParams != null && queryParams.isNotEmpty) {
-      return uri.replace(queryParameters: queryParams);
-    }
-    return uri;
+  /// Performs a GET request that returns raw bytes (for file downloads)
+  ///
+  /// [endpoint] - API endpoint (e.g., '/invoices/{id}/pdf')
+  /// [token] - Bearer token for authorization
+  /// [queryParams] - Optional query parameters
+  ///
+  /// Returns raw response bytes as [Uint8List]
+  /// Throws [ApiException] subclasses for specific errors
+  Future<Uint8List> getBytes(
+    String endpoint, {
+    required String token,
+    Map<String, String>? queryParams,
+  }) async {
+    final uri = _buildUri(endpoint, queryParams);
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    _checkResponseStatus(response);
+    return response.bodyBytes;
   }
 
-  dynamic _handleResponse(http.Response response) {
+  /// Checks HTTP status code and throws typed exceptions on error
+  void _checkResponseStatus(http.Response response) {
     switch (response.statusCode) {
       case 200:
-        if (response.body.isEmpty) {
-          return null;
-        }
-        return jsonDecode(response.body);
+        return;
 
       case 401:
         throw const UnauthorizedException();
@@ -66,6 +83,11 @@ class ApiClient {
         final body = _tryParseBody(response.body);
         final detail = body?['detail'] as String?;
         throw ForbiddenException(message: detail);
+
+      case 409:
+        final body = _tryParseBody(response.body);
+        final detail = body?['detail'] as String?;
+        throw PdfNotReadyException(message: detail);
 
       case 503:
         final body = _tryParseBody(response.body);
@@ -80,6 +102,22 @@ class ApiClient {
           message: detail,
         );
     }
+  }
+
+  Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    if (queryParams != null && queryParams.isNotEmpty) {
+      return uri.replace(queryParameters: queryParams);
+    }
+    return uri;
+  }
+
+  dynamic _handleResponse(http.Response response) {
+    _checkResponseStatus(response);
+    if (response.body.isEmpty) {
+      return null;
+    }
+    return jsonDecode(response.body);
   }
 
   Map<String, dynamic>? _tryParseBody(String body) {

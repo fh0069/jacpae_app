@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
@@ -85,6 +87,41 @@ class InvoicesRepository {
       }
       return true;
     }).toList();
+  }
+
+  /// Downloads an invoice PDF and saves it to a temporary file
+  ///
+  /// [invoiceId] - Base64url-encoded invoice identifier
+  /// [fileDisplayName] - Human-readable name for the file (e.g., "FV-2024-0001")
+  ///
+  /// Returns the saved [File] ready to be opened
+  /// Throws [PdfNotReadyException], [UnauthorizedException],
+  /// [ForbiddenException], or [GenericApiException] on error
+  Future<File> downloadInvoicePdf({
+    required String invoiceId,
+    required String fileDisplayName,
+  }) async {
+    final token = _getAccessToken();
+
+    final bytes = await _invoicesApi.downloadInvoicePdf(
+      token: token,
+      invoiceId: invoiceId,
+    );
+
+    final sanitized = _sanitizeFilename(fileDisplayName);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/Factura_$sanitized.pdf');
+    await file.writeAsBytes(bytes);
+
+    return file;
+  }
+
+  /// Removes filesystem-unsafe characters from a filename
+  static String _sanitizeFilename(String name) {
+    return name
+        .replaceAll(RegExp(r'[/\\:*?"<>|\s]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
   }
 
   /// Fetches all invoices with pagination, applying client-side filtering

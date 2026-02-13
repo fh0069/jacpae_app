@@ -41,6 +41,15 @@ class ServiceUnavailableException extends ApiException {
         );
 }
 
+/// 409 - Conflict: PDF not yet generated
+class PdfNotReadyException extends ApiException {
+  const PdfNotReadyException({String? message})
+      : super(
+          message: message ?? 'El PDF aún no está generado. Inténtalo más tarde.',
+          statusCode: 409,
+        );
+}
+
 /// Generic API error for other status codes
 class GenericApiException extends ApiException {
   const GenericApiException({required super.statusCode, String? message})

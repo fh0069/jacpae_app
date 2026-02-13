@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../../../../core/network/api_client.dart';
 import '../models/invoice.dart';
 
@@ -36,5 +37,23 @@ class InvoicesApi {
     return jsonList
         .map((json) => Invoice.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Downloads invoice PDF bytes from the API
+  ///
+  /// [token] - Bearer token for authorization
+  /// [invoiceId] - Base64url-encoded invoice identifier
+  ///
+  /// Returns raw PDF bytes
+  /// Throws [PdfNotReadyException] (409), [UnauthorizedException] (401),
+  /// [ForbiddenException] (403), or [GenericApiException] on error
+  Future<Uint8List> downloadInvoicePdf({
+    required String token,
+    required String invoiceId,
+  }) async {
+    return _apiClient.getBytes(
+      '/invoices/$invoiceId/pdf',
+      token: token,
+    );
   }
 }

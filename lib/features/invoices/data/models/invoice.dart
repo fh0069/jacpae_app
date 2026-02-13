@@ -3,6 +3,7 @@
 /// JSON structure from API:
 /// ```json
 /// {
+///   "invoice_id": "base64url_encoded_id",
 ///   "factura": "FV-XXXX-0001",
 ///   "fecha": "2026-01-01",
 ///   "base_imponible": 1000.0,
@@ -11,6 +12,7 @@
 /// }
 /// ```
 class Invoice {
+  final String? invoiceId;
   final String factura;
   final DateTime fecha;
   final double baseImponible;
@@ -18,6 +20,7 @@ class Invoice {
   final double importeTotal;
 
   const Invoice({
+    this.invoiceId,
     required this.factura,
     required this.fecha,
     required this.baseImponible,
@@ -27,6 +30,7 @@ class Invoice {
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
+      invoiceId: json['invoice_id'] as String?,
       factura: json['factura'] as String,
       fecha: DateTime.parse(json['fecha'] as String),
       baseImponible: (json['base_imponible'] as num).toDouble(),
@@ -37,6 +41,7 @@ class Invoice {
 
   Map<String, dynamic> toJson() {
     return {
+      if (invoiceId != null) 'invoice_id': invoiceId,
       'factura': factura,
       'fecha': '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}',
       'base_imponible': baseImponible,

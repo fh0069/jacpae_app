@@ -13,11 +13,15 @@ import '../../data/models/invoice.dart';
 class InvoiceListTile extends StatelessWidget {
   final Invoice invoice;
   final VoidCallback? onTap;
+  final VoidCallback? onDownloadPdf;
+  final bool isDownloading;
 
   const InvoiceListTile({
     super.key,
     required this.invoice,
     this.onTap,
+    this.onDownloadPdf,
+    this.isDownloading = false,
   });
 
   @override
@@ -99,7 +103,7 @@ class InvoiceListTile extends StatelessWidget {
                 ),
               ),
 
-              // Total amount
+              // Total amount + download
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -117,6 +121,33 @@ class InvoiceListTile extends StatelessWidget {
                           color: AppColors.textSecondary,
                           fontSize: 10,
                         ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Download PDF button
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: isDownloading
+                        ? const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : IconButton(
+                            padding: EdgeInsets.zero,
+                            iconSize: 20,
+                            tooltip: invoice.invoiceId != null
+                                ? 'Descargar PDF'
+                                : 'PDF no disponible',
+                            onPressed: invoice.invoiceId != null
+                                ? onDownloadPdf
+                                : null,
+                            icon: Icon(
+                              Icons.picture_as_pdf,
+                              color: invoice.invoiceId != null
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:open_filex/open_filex.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -55,6 +56,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   bool _hasMore = true;
   int _currentOffset = 0;
   bool _isLoadingMore = false;
+
+  // PDF download tracking (invoiceIds currently downloading)
+  final Set<String> _downloadingIds = {};
 
   // Date filters
   late DateTime _fromDate;
@@ -241,6 +245,56 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     setState(() {
       _selectedTab = index;
     });
+  }
+
+  Future<void> _downloadPdf(Invoice invoice) async {
+    final invoiceId = invoice.invoiceId;
+    if (invoiceId == null) return;
+    if (_downloadingIds.contains(invoiceId)) return;
+
+    setState(() => _downloadingIds.add(invoiceId));
+
+    try {
+      final file = await _repository.downloadInvoicePdf(
+        invoiceId: invoiceId,
+        fileDisplayName: invoice.factura,
+      );
+      if (!mounted) return;
+      await OpenFilex.open(file.path);
+    } on PdfNotReadyException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.message);
+    } on UnauthorizedException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.message);
+    } on ForbiddenException catch (_) {
+      if (!mounted) return;
+      _showSnackBar('No tienes permiso para descargar este documento.');
+    } on GenericApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 404) {
+        _showSnackBar('El PDF no está disponible.');
+      } else {
+        _showSnackBar('Error al descargar el PDF: ${e.message}');
+      }
+    } catch (_) {
+      if (!mounted) return;
+      _showSnackBar('Error inesperado al descargar el PDF.');
+    } finally {
+      if (mounted) {
+        setState(() => _downloadingIds.remove(invoiceId));
+      }
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -442,8 +496,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
             return _buildLoadMoreButton();
           }
 
+          final invoice = _invoices[index];
           return InvoiceListTile(
-            invoice: _invoices[index],
+            invoice: invoice,
+            isDownloading: invoice.invoiceId != null &&
+                _downloadingIds.contains(invoice.invoiceId),
+            onDownloadPdf: () => _downloadPdf(invoice),
             onTap: () {
               // TODO: Navigate to invoice detail if needed
             },
