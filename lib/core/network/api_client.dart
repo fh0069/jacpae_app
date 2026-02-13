@@ -85,9 +85,8 @@ class ApiClient {
         throw ForbiddenException(message: detail);
 
       case 409:
-        final body = _tryParseBody(response.body);
-        final detail = body?['detail'] as String?;
-        throw PdfNotReadyException(message: detail);
+        // Always use Spanish default message; backend sends English detail
+        throw const PdfNotReadyException();
 
       case 503:
         final body = _tryParseBody(response.body);

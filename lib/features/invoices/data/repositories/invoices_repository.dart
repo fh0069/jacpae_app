@@ -109,8 +109,9 @@ class InvoicesRepository {
     );
 
     final sanitized = _sanitizeFilename(fileDisplayName);
+    final fileName = sanitized.isNotEmpty ? 'Factura_$sanitized' : 'Factura';
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/Factura_$sanitized.pdf');
+    final file = File('${dir.path}/$fileName.pdf');
     await file.writeAsBytes(bytes);
 
     return file;

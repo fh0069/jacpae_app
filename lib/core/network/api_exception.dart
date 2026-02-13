@@ -45,7 +45,7 @@ class ServiceUnavailableException extends ApiException {
 class PdfNotReadyException extends ApiException {
   const PdfNotReadyException({String? message})
       : super(
-          message: message ?? 'El PDF aún no está generado. Inténtalo más tarde.',
+          message: message ?? 'El PDF de esta factura aún no está generado. Inténtalo más tarde.',
           statusCode: 409,
         );
 }

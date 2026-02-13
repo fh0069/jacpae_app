@@ -264,22 +264,22 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     } on PdfNotReadyException catch (e) {
       if (!mounted) return;
       _showSnackBar(e.message);
-    } on UnauthorizedException catch (e) {
+    } on UnauthorizedException catch (_) {
       if (!mounted) return;
-      _showSnackBar(e.message);
+      _showSnackBar('Sesión caducada. Vuelve a iniciar sesión.');
     } on ForbiddenException catch (_) {
       if (!mounted) return;
-      _showSnackBar('No tienes permiso para descargar este documento.');
+      _showSnackBar('No tienes permisos para acceder a esta factura.');
     } on GenericApiException catch (e) {
       if (!mounted) return;
       if (e.statusCode == 404) {
-        _showSnackBar('El PDF no está disponible.');
+        _showSnackBar('Factura no encontrada.');
       } else {
-        _showSnackBar('Error al descargar el PDF: ${e.message}');
+        _showSnackBar('No se pudo descargar el PDF. Revisa tu conexión e inténtalo de nuevo.');
       }
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('Error inesperado al descargar el PDF.');
+      _showSnackBar('No se pudo descargar el PDF. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       if (mounted) {
         setState(() => _downloadingIds.remove(invoiceId));

@@ -136,7 +136,7 @@ class InvoiceListTile extends StatelessWidget {
                             padding: EdgeInsets.zero,
                             iconSize: 20,
                             tooltip: invoice.invoiceId != null
-                                ? 'Descargar PDF'
+                                ? 'Ver PDF'
                                 : 'PDF no disponible',
                             onPressed: invoice.invoiceId != null
                                 ? onDownloadPdf
