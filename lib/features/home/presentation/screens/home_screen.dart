@@ -59,7 +59,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           icon: Icons.question_answer,
           color: AppColors.primary,
           route: AppConstants.consultasRoute,
-          badgeCount: 3,
         ),
         DashboardItem(
           title: 'Pagos',

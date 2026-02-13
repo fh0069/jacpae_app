@@ -9,13 +9,13 @@ import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../data/providers/auth_provider.dart';
 
-// Social media URLs placeholders - TODO: Add real URLs
-const String _instaUrl = '';
-const String _facebookUrl = '';
-const String _linkedinUrl = '';
+// Social media URLs
+const String _instaUrl = 'https://www.instagram.com/jacpae';
+const String _facebookUrl = 'https://www.facebook.com/josesantiagovargassa';
+const String _linkedinUrl = 'https://www.linkedin.com/company/28881203';
 
 // Support email
-const String _supportEmail = 'soporte@santiagovargas.com';
+const String _supportEmail = 'francisco.henares@santiagovargas.com';
 
 // Company info
 const String _companyEmail = 'info@santiagovargas.com';
@@ -129,6 +129,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return 'Demasiados intentos. Intenta más tarde.';
     }
     return message;
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo abrir el enlace'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _launchSupportEmail() async {
@@ -409,7 +425,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(width: 8),
               _buildSocialIcon(
-                icon: Icons.work,
+                customIcon: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'in',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
                 url: _linkedinUrl,
                 tooltip: 'LinkedIn',
               ),
@@ -424,14 +457,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           color: AppColors.primary, // Azul corporativo #00AEC7
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
-          child: const Text(
-            '$_companyEmail  •  $_companyWeb',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () => _launchUrl('mailto:$_companyEmail'),
+                child: const Text(
+                  _companyEmail,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Text(
+                '  •  ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _launchUrl('https://$_companyWeb'),
+                child: const Text(
+                  _companyWeb,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -439,16 +499,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildSocialIcon({
-    required IconData icon,
+    IconData? icon,
+    Widget? customIcon,
     required String url,
     required String tooltip,
   }) {
     return IconButton(
-      icon: Icon(
-        icon,
-        size: 22,
-        color: AppColors.primary, // Azul corporativo #00AEC7 (forzado)
-      ),
+      icon: customIcon ??
+          Icon(
+            icon!,
+            size: 22,
+            color: AppColors.primary, // Azul corporativo #00AEC7 (forzado)
+          ),
       tooltip: tooltip,
       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
       padding: const EdgeInsets.all(8),
