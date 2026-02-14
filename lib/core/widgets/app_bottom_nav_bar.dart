@@ -5,7 +5,7 @@ import '../theme/app_colors.dart';
 
 /// Bottom navigation bar corporativo definitivo
 ///
-/// Tabs: Inicio | Consultas | Notificaciones | Ajustes
+/// Tabs: Inicio | Consultas | Avisos | Ajustes
 ///
 /// Si [currentIndex] es null, no hay tab seleccionado (todos grises).
 class AppBottomNavBar extends StatelessWidget {
@@ -16,6 +16,9 @@ class AppBottomNavBar extends StatelessWidget {
     super.key,
     this.currentIndex,
   });
+
+  // Estilo compartido para labels
+  static const _labelStyle = TextStyle(fontSize: 11);
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +34,19 @@ class AppBottomNavBar extends StatelessWidget {
         top: false,
         child: BottomNavigationBar(
           currentIndex: currentIndex!,
-          elevation: 0, // Sin sombra
+          elevation: 0,
           onTap: (index) => _onItemTapped(context, index),
           type: BottomNavigationBarType.fixed,
           backgroundColor: AppColors.surface,
-          selectedItemColor: AppColors.primary, // Azul corporativo #00AEC7
-          unselectedItemColor: AppColors.textSecondary, // Gris
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          iconSize: 24,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          selectedLabelStyle: _labelStyle,
+          unselectedLabelStyle: _labelStyle,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -53,7 +61,7 @@ class AppBottomNavBar extends StatelessWidget {
             BottomNavigationBarItem(
               icon: Icon(Icons.notifications_outlined),
               activeIcon: Icon(Icons.notifications),
-              label: 'Notificaciones',
+              label: 'Avisos',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
@@ -71,7 +79,7 @@ class AppBottomNavBar extends StatelessWidget {
     const items = [
       {'icon': Icons.home_outlined, 'label': 'Inicio'},
       {'icon': Icons.folder_outlined, 'label': 'Consultas'},
-      {'icon': Icons.notifications_outlined, 'label': 'Notificaciones'},
+      {'icon': Icons.notifications_outlined, 'label': 'Avisos'},
       {'icon': Icons.settings_outlined, 'label': 'Ajustes'},
     ];
 
@@ -99,9 +107,11 @@ class AppBottomNavBar extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         item['label'] as String,
+                        maxLines: 1,
+                        softWrap: false,
                         style: const TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 11,
                         ),
                       ),
                     ],
