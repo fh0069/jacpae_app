@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -453,45 +454,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // ========== FRANJA INFERIOR: EMAIL + WEB ==========
         Container(
           width: double.infinity,
-          height: stripHeight,
+          constraints: const BoxConstraints(minHeight: stripHeight),
           color: AppColors.primary, // Azul corporativo #00AEC7
           alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: () => _launchUrl('mailto:$_companyEmail'),
-                child: const Text(
-                  _companyEmail,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.spacingM,
+            vertical: 6,
+          ),
+          child: Text.rich(
+            TextSpan(
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
-              const Text(
-                '  •  ',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              children: [
+                TextSpan(
+                  text: _companyEmail,
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => _launchUrl('mailto:$_companyEmail'),
                 ),
-              ),
-              GestureDetector(
-                onTap: () => _launchUrl('https://$_companyWeb'),
-                child: const Text(
-                  _companyWeb,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                const TextSpan(text: '  •  '),
+                TextSpan(
+                  text: _companyWeb,
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => _launchUrl('https://$_companyWeb'),
                 ),
-              ),
-            ],
+              ],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
