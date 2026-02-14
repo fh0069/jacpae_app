@@ -232,6 +232,7 @@ The router enforces MFA before allowing access:
 |-----------|----------------|---------|
 | Not logged in | Any | → `/` (Login) |
 | AAL1 (no MFA) | Private routes | → `/mfa/verify` |
+| AAL2 + lock activo | Private routes | → `/lock` (biometría) |
 | AAL2 (with MFA) | Auth pages | → `/home` |
 | AAL2 (with MFA) | Private routes | ✅ Allowed |
 
@@ -265,12 +266,43 @@ The router enforces MFA before allowing access:
 - PKCE flow
 - Only anon key in client (no service_role exposure)
 - Navigation guards
+- Bloqueo biométrico local (10 min timeout)
 
 ⚠️ **Not Implemented (Future):**
 - Password reset
 - Account recovery
-- Biometric authentication
 - Rate limiting
+
+### 🔒 Bloqueo de aplicación (biometría)
+
+La app incluye un bloqueo local por biometría como refuerzo de seguridad adicional al MFA.
+
+**Comportamiento:**
+- Si la app pasa **10 minutos o más en segundo plano**, al volver se muestra una pantalla de bloqueo
+- El usuario debe autenticarse con huella dactilar, reconocimiento facial o credencial del dispositivo (según lo que tenga configurado)
+- Tras desbloquear, se retoma la sesión normalmente sin repetir login ni MFA
+
+**Fallback (sin biometría):**
+- Si el dispositivo **no soporta biometría** o el usuario **no tiene biometría configurada**, la app **no aplica el bloqueo** y permite el acceso directo
+- Este comportamiento es automático y no requiere configuración
+
+**Notas de seguridad:**
+- No sustituye al MFA (TOTP); es un refuerzo local complementario
+- No se almacenan credenciales en el dispositivo
+- El bloqueo solo aplica cuando ya existe una sesión Supabase válida (AAL2)
+
+**Archivos clave:**
+- `lib/core/security/biometric_service.dart` — servicio de biometría
+- `lib/core/security/app_lock_controller.dart` — controller de timeout y lifecycle
+- `lib/core/security/lock_screen.dart` — pantalla de desbloqueo
+
+**QA / Cómo probar:**
+1. Inicia sesión normalmente (login + MFA)
+2. Deja la app en segundo plano durante **10 minutos o más**
+3. Vuelve a la app → debe aparecer la pantalla de bloqueo
+4. Pulsa "Desbloquear" → el dispositivo pide huella/cara
+5. Tras autenticarse, vuelves al dashboard
+6. Verificar: si vuelves antes de 10 minutos, **no** pide desbloqueo
 
 📚 **For detailed auth documentation**, see [docs/auth.md](docs/auth.md)
 

@@ -42,6 +42,9 @@ dependencies:
   # Environment variables from .env file
   flutter_dotenv: ^5.2.1
 
+  # Biometric authentication (App Lock)
+  local_auth: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

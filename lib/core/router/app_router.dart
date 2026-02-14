@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -15,6 +16,8 @@ import '../../features/ajustes/presentation/screens/ajustes_screen.dart';
 import '../../features/descargas/presentation/screens/descargas_screen.dart';
 import '../../features/descargas/presentation/screens/historial_screen.dart';
 import '../constants/app_constants.dart';
+import '../security/app_lock_controller.dart';
+import '../security/lock_screen.dart';
 
 /// Global navigation router configuration with auth guards
 class AppRouter {
@@ -23,9 +26,16 @@ class AppRouter {
   static final provider = Provider<GoRouter>((ref) {
     final routerNotifier = ref.watch(routerRefreshNotifierProvider);
 
+    // Dedicated listenable for lock state changes (decoupled from auth)
+    final lockRefresh = ValueNotifier<int>(0);
+    ref.onDispose(lockRefresh.dispose);
+    ref.listen(appLockControllerProvider, (prev, next) {
+      lockRefresh.value++;
+    });
+
     return GoRouter(
       initialLocation: AppConstants.loginRoute,
-      refreshListenable: routerNotifier,
+      refreshListenable: Listenable.merge([routerNotifier, lockRefresh]),
       redirect: (context, state) {
         final isAuthenticated = routerNotifier.isAuthenticated;
         final isAAL2 = routerNotifier.isAAL2;
@@ -37,9 +47,22 @@ class AppRouter {
         // Public routes (no auth required)
         final isLoginRoute = currentPath == AppConstants.loginRoute;
         final isMFARoute = currentPath.startsWith('/mfa');
+        final isLockRoute = currentPath == AppConstants.lockRoute;
 
-        // If user is fully authenticated (AAL2) and trying to access auth pages
+        // If user is fully authenticated (AAL2)
         if (isAuthenticated && isAAL2) {
+          // Check app lock state
+          final lockState = ref.read(appLockControllerProvider);
+          if (lockState.requiresUnlock) {
+            // Already on lock screen — stay
+            if (isLockRoute) return null;
+            // Redirect to lock screen
+            return AppConstants.lockRoute;
+          }
+
+          // Unlocked — leave lock screen if still on it
+          if (isLockRoute) return AppConstants.homeRoute;
+
           print('✅ User is AAL2, redirecting away from auth pages');
           if (isLoginRoute || isMFARoute) {
             return AppConstants.homeRoute;
@@ -92,6 +115,13 @@ class AppRouter {
           path: AppConstants.mfaVerifyRoute,
           name: 'mfa-verify',
           builder: (context, state) => const MFAVerifyScreen(),
+        ),
+
+        // App lock route (requires auth + AAL2, shown on timeout)
+        GoRoute(
+          path: AppConstants.lockRoute,
+          name: 'lock',
+          builder: (context, state) => const LockScreen(),
         ),
 
         // Private routes (require auth + AAL2)
