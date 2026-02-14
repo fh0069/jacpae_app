@@ -73,7 +73,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           icon: Icons.notifications,
           color: AppColors.warning,
           route: AppConstants.notificacionesRoute,
-          badgeCount: 5,
         ),
         DashboardItem(
           title: 'Descargas',

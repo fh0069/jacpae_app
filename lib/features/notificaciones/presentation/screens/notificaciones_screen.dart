@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../data/mock_data/notificaciones_mock.dart';
 
-/// Notificaciones list screen with mock data
+/// Notificaciones — pantalla placeholder "En desarrollo".
+/// La implementación completa se encuentra en [NotificacionesFullScreen]
+/// y se activará en Fase 2.
 class NotificacionesScreen extends StatefulWidget {
   const NotificacionesScreen({super.key});
 
@@ -15,17 +15,15 @@ class NotificacionesScreen extends StatefulWidget {
 
 class _NotificacionesScreenState extends State<NotificacionesScreen> {
   // Colores del patrón visual corporativo
-  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
-  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+  static const _statusBarColor = Color(0xFFEB5C00);
+  static const _appBarColor = Color(0xFFCDD1D5);
 
-  // Estilo para iconos blancos en status bar
   static const _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
     statusBarBrightness: Brightness.dark,
   );
 
-  // Estilo neutro para restaurar al salir
   static const _defaultStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -44,50 +42,17 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     super.dispose();
   }
 
-  Color _getTipoColor(String tipo) {
-    switch (tipo) {
-      case 'info':
-        return AppColors.info;
-      case 'warning':
-        return AppColors.warning;
-      case 'error':
-        return AppColors.error;
-      case 'success':
-        return AppColors.success;
-      default:
-        return AppColors.textSecondary;
-    }
-  }
-
-  IconData _getTipoIcon(String tipo) {
-    switch (tipo) {
-      case 'info':
-        return Icons.info_outline;
-      case 'warning':
-        return Icons.warning_amber;
-      case 'error':
-        return Icons.error_outline;
-      case 'success':
-        return Icons.check_circle_outline;
-      default:
-        return Icons.notifications;
-    }
-  }
-
-  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
   Widget _buildCustomHeader(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Franja naranja (status bar)
         Container(
           width: double.infinity,
           height: statusBarHeight,
           color: _statusBarColor,
         ),
-        // AppBar gris
         Container(
           width: double.infinity,
           height: kToolbarHeight,
@@ -96,7 +61,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           child: Row(
             children: [
               const SizedBox(width: 12),
-              // Título
               const Text(
                 'Notificaciones',
                 style: TextStyle(
@@ -105,7 +69,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                   fontSize: 20,
                 ),
               ),
-              // Logo centrado
               Expanded(
                 child: Center(
                   child: Image.asset(
@@ -115,7 +78,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                   ),
                 ),
               ),
-              // Espacio para equilibrar
               const SizedBox(width: 48),
             ],
           ),
@@ -126,8 +88,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notificaciones = NotificacionesMock.notificaciones;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: AppScaffold(
@@ -135,90 +95,45 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         showInfoBar: false,
         body: Column(
           children: [
-            // Header corporativo
             _buildCustomHeader(context),
-
-            // Lista de notificaciones
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppConstants.spacingM),
-                itemCount: notificaciones.length,
-                itemBuilder: (context, index) {
-                  final notif = notificaciones[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
-                    color: notif.leida
-                        ? null
-                        : AppColors.primary.withValues(alpha: 0.05),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor:
-                            _getTipoColor(notif.tipo).withValues(alpha: 0.2),
-                        child: Icon(
-                          _getTipoIcon(notif.tipo),
-                          color: _getTipoColor(notif.tipo),
-                        ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.notifications_outlined,
+                        size: 64,
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(notif.titulo)),
-                          if (!notif.leida)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                        ],
+                      const SizedBox(height: 16),
+                      Text(
+                        'En desarrollo',
+                        style:
+                            Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
                       ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: AppConstants.spacingS),
-                          Text(
-                            notif.mensaje,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: AppConstants.spacingS),
-                          Text(
-                            _formatFecha(notif.fecha),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Las notificaciones estarán disponibles próximamente.',
+                        textAlign: TextAlign.center,
+                        style:
+                            Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
                       ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Detalle disponible en Fase 2'),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  String _formatFecha(DateTime fecha) {
-    final now = DateTime.now();
-    final difference = now.difference(fecha);
-
-    if (difference.inHours < 1) {
-      return 'Hace ${difference.inMinutes} minutos';
-    } else if (difference.inHours < 24) {
-      return 'Hace ${difference.inHours} horas';
-    } else if (difference.inDays < 7) {
-      return 'Hace ${difference.inDays} días';
-    } else {
-      return '${fecha.day}/${fecha.month}/${fecha.year}';
-    }
   }
 }
