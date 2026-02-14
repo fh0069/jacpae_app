@@ -70,6 +70,8 @@ class DashboardCard extends StatelessWidget {
                       color: item.color,
                     ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: AppConstants.spacingS),
 
@@ -80,6 +82,7 @@ class DashboardCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                softWrap: true,
               ),
             ],
           ),

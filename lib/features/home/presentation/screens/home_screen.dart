@@ -219,85 +219,89 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         bottomNavIndex: 0, // Tab Inicio seleccionado
         showInfoBar: false, // Sin footer de redes sociales
         // SIN appBar - lo pintamos manualmente en el body
-        body: Column(
-          children: [
-            // Header custom: status bar naranja + toolbar gris
-            _buildCustomHeader(context),
+        // Limitar textScaleFactor SOLO en este dashboard para consistencia corporativa
+        body: MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+          child: Column(
+            children: [
+              // Header custom: status bar naranja + toolbar gris
+              _buildCustomHeader(context),
 
-            // Contenido principal (scrollable)
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppConstants.spacingM),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome section
-                    Text(
-                      '¡Bienvenido!',
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    const SizedBox(height: AppConstants.spacingS),
-                    Text(
-                      'Seleccione una opción del menú',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: AppConstants.spacingL),
-
-                    // Auth status notice
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppConstants.spacingM),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusM),
-                        border: Border.all(color: Colors.green),
+              // Contenido principal (scrollable)
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppConstants.spacingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Welcome section
+                      Text(
+                        '¡Bienvenido!',
+                        style: Theme.of(context).textTheme.displaySmall,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check_circle, color: Colors.green),
-                          const SizedBox(width: AppConstants.spacingM),
-                          Expanded(
-                            child: Text(
-                              'Autenticado con MFA (AAL2)',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Colors.green,
-                                  ),
+                      const SizedBox(height: AppConstants.spacingS),
+                      Text(
+                        'Seleccione una opción del menú',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: AppConstants.spacingL),
+
+                      // Auth status notice
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(AppConstants.spacingM),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppConstants.radiusM),
+                          border: Border.all(color: Colors.green),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green),
+                            const SizedBox(width: AppConstants.spacingM),
+                            Expanded(
+                              child: Text(
+                                'Autenticado con MFA (AAL2)',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Colors.green,
+                                    ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppConstants.spacingL),
+                      const SizedBox(height: AppConstants.spacingL),
 
-                    // Dashboard grid
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: AppConstants.spacingM,
-                        mainAxisSpacing: AppConstants.spacingM,
-                        childAspectRatio: 1.1,
+                      // Dashboard grid
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppConstants.spacingM,
+                          mainAxisSpacing: AppConstants.spacingM,
+                          childAspectRatio: 0.95,
+                        ),
+                        itemCount: _dashboardItems.length,
+                        itemBuilder: (context, index) {
+                          final item = _dashboardItems[index];
+                          return DashboardCard(
+                            item: item,
+                            onTap: () => context.push(item.route),
+                          );
+                        },
                       ),
-                      itemCount: _dashboardItems.length,
-                      itemBuilder: (context, index) {
-                        final item = _dashboardItems[index];
-                        return DashboardCard(
-                          item: item,
-                          onTap: () => context.push(item.route),
-                        );
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
