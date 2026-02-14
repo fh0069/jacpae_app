@@ -89,7 +89,7 @@ class InvoicesRepository {
     }).toList();
   }
 
-  /// Downloads an invoice PDF and saves it to a temporary file
+  /// Downloads an invoice PDF and saves it to the app's Documents directory
   ///
   /// [invoiceId] - Base64url-encoded invoice identifier
   /// [fileDisplayName] - Human-readable name for the file (e.g., "FV-2024-0001")
@@ -110,7 +110,7 @@ class InvoicesRepository {
 
     final sanitized = _sanitizeFilename(fileDisplayName);
     final fileName = sanitized.isNotEmpty ? 'Factura_$sanitized' : 'Factura';
-    final dir = await getTemporaryDirectory();
+    final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/$fileName.pdf');
     await file.writeAsBytes(bytes);
 
@@ -123,6 +123,28 @@ class InvoicesRepository {
         .replaceAll(RegExp(r'[/\\:*?"<>|\s]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
+  }
+
+  /// Returns locally downloaded PDF files sorted by last modified (newest first).
+  ///
+  /// Reads the app's Documents directory and filters for *.pdf files.
+  /// Returns an empty list if no PDFs are found.
+  Future<List<File>> getDownloadedInvoices() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final entries = dir.listSync();
+    final pdfs = entries
+        .whereType<File>()
+        .where((f) => f.path.toLowerCase().endsWith('.pdf'))
+        .toList();
+
+    // Sort by lastModified descending (newest first)
+    pdfs.sort((a, b) {
+      final aStat = a.statSync();
+      final bStat = b.statSync();
+      return bStat.modified.compareTo(aStat.modified);
+    });
+
+    return pdfs;
   }
 
   /// Fetches all invoices with pagination, applying client-side filtering
