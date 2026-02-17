@@ -275,6 +275,8 @@ The router enforces MFA before allowing access:
 
 ### 🔒 Bloqueo de aplicación (biometría)
 
+> 🔐 **App Lock:** tras 10 minutos fuera de la app (en segundo plano/background), la aplicación solicita desbloqueo biométrico para continuar.
+
 La app incluye un bloqueo local por biometría como refuerzo de seguridad adicional al MFA.
 
 **Comportamiento:**

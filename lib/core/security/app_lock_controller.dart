@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'biometric_service.dart';
@@ -36,22 +37,46 @@ class AppLockController extends StateNotifier<AppLockState>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      _onAppPaused();
+    // Treat paused, inactive and detached as background states
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _markBackground(state);
     } else if (state == AppLifecycleState.resumed) {
       _onAppResumed();
     }
   }
 
-  void _onAppPaused() {
-    _lastBackgroundAt = DateTime.now();
+  /// Debounce window to avoid overwriting [_lastBackgroundAt] when
+  /// Android fires inactive → paused back-to-back.
+  static const _debounce = Duration(seconds: 2);
+
+  void _markBackground(AppLifecycleState state) {
+    final now = DateTime.now();
+    if (_lastBackgroundAt != null &&
+        now.difference(_lastBackgroundAt!) < _debounce) {
+      if (kDebugMode) {
+        debugPrint('[LOCK] lifecycle=$state -> skipped (debounce)');
+      }
+      return;
+    }
+    _lastBackgroundAt = now;
+    if (kDebugMode) {
+      debugPrint('[LOCK] lifecycle=$state -> mark background');
+    }
   }
 
   Future<void> _onAppResumed() async {
     if (_lastBackgroundAt == null) return;
 
     final elapsed = DateTime.now().difference(_lastBackgroundAt!);
-    if (elapsed < _lockTimeout) return;
+    final requires = elapsed >= _lockTimeout;
+
+    if (kDebugMode) {
+      debugPrint('[LOCK] lifecycle=resumed delta=$elapsed requiresUnlock=$requires');
+    }
+
+    if (!requires) return;
 
     // Only lock if biometrics are available
     final available = await _biometricService.isBiometricsAvailable();
