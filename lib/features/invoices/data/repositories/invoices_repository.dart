@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../descargas/data/downloaded_pdf.dart';
 import '../api/invoices_api.dart';
 import '../models/invoice.dart';
 
@@ -125,26 +126,42 @@ class InvoicesRepository {
         .replaceAll(RegExp(r'^_|_$'), '');
   }
 
-  /// Returns locally downloaded PDF files sorted by last modified (newest first).
+  /// Returns locally downloaded PDFs sorted by last modified (newest first).
   ///
-  /// Reads the app's Documents directory and filters for *.pdf files.
-  /// Returns an empty list if no PDFs are found.
-  Future<List<File>> getDownloadedInvoices() async {
+  /// Fully async — uses `dir.list()` and `file.lastModified()` to avoid
+  /// blocking the UI thread. Supports local pagination via [limit]/[offset].
+  Future<List<DownloadedPdf>> getDownloadedInvoices({
+    int limit = 50,
+    int offset = 0,
+  }) async {
     final dir = await getApplicationDocumentsDirectory();
-    final entries = dir.listSync();
-    final pdfs = entries
-        .whereType<File>()
-        .where((f) => f.path.toLowerCase().endsWith('.pdf'))
-        .toList();
+    final allPdfs = <DownloadedPdf>[];
 
-    // Sort by lastModified descending (newest first)
-    pdfs.sort((a, b) {
-      final aStat = a.statSync();
-      final bStat = b.statSync();
-      return bStat.modified.compareTo(aStat.modified);
-    });
+    await for (final entity in dir.list()) {
+      if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
+        final modified = await entity.lastModified();
+        allPdfs.add(DownloadedPdf(
+          file: entity,
+          name: entity.uri.pathSegments.last,
+          modified: modified,
+        ));
+      }
+    }
 
-    return pdfs;
+    // Sort by modified descending (newest first)
+    allPdfs.sort((a, b) => b.modified.compareTo(a.modified));
+
+    // Apply pagination
+    if (offset >= allPdfs.length) return [];
+    final end = (offset + limit).clamp(0, allPdfs.length);
+    return allPdfs.sublist(offset, end);
+  }
+
+  /// Deletes a downloaded PDF from disk.
+  Future<void> deleteDownloadedPdf(File file) async {
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 
   /// Fetches all invoices with pagination, applying client-side filtering
