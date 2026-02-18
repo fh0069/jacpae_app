@@ -70,11 +70,41 @@ class ApiClient {
     return response.bodyBytes;
   }
 
+  /// Performs a PATCH request with Bearer token authorization
+  ///
+  /// [endpoint] - API endpoint (e.g., '/notifications/{id}/read')
+  /// [token] - Bearer token for authorization
+  /// [body] - Optional request body (will be JSON-encoded)
+  ///
+  /// Returns decoded JSON response, or null for 204 No Content
+  /// Throws [ApiException] subclasses for specific errors
+  Future<dynamic> patch(
+    String endpoint, {
+    required String token,
+    Map<String, dynamic>? body,
+  }) async {
+    final uri = _buildUri(endpoint, null);
+
+    final response = await _httpClient.patch(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body != null ? jsonEncode(body) : null,
+    );
+
+    return _handleResponse(response);
+  }
+
   /// Checks HTTP status code and throws typed exceptions on error
   void _checkResponseStatus(http.Response response) {
-    switch (response.statusCode) {
-      case 200:
-        return;
+    final code = response.statusCode;
+
+    // 2xx → success
+    if (code >= 200 && code < 300) return;
+
+    switch (code) {
 
       case 401:
         throw const UnauthorizedException();

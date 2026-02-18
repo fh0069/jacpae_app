@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../auth/data/providers/auth_provider.dart';
+import '../../../notificaciones/presentation/providers/notifications_provider.dart';
 import '../../data/models/dashboard_item.dart';
 import '../widgets/dashboard_card.dart';
 
@@ -40,8 +41,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Aplicar iconos blancos en status bar
     SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+    // Populate badge without blocking UI; errors are swallowed by silentRefresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(notificationsControllerProvider.notifier).silentRefresh();
+      }
+    });
   }
 
   @override
@@ -51,16 +57,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
-  // Mock dashboard items
-  List<DashboardItem> get _dashboardItems => [
-        DashboardItem(
+  List<DashboardItem> _buildDashboardItems(int unreadCount) => [
+        const DashboardItem(
           title: 'Consultas',
           subtitle: 'Facturas, albaranes o pedidos',
           icon: Icons.question_answer,
           color: AppColors.primary,
           route: AppConstants.consultasRoute,
         ),
-        DashboardItem(
+        const DashboardItem(
           title: 'Pagos',
           subtitle: 'Gestionar pagos',
           icon: Icons.payment,
@@ -73,22 +78,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           icon: Icons.notifications,
           color: AppColors.warning,
           route: AppConstants.notificacionesRoute,
+          badgeCount: unreadCount > 0 ? unreadCount : null,
         ),
-        DashboardItem(
+        const DashboardItem(
           title: 'Descargas',
           subtitle: 'Documentos y archivos',
           icon: Icons.download,
           color: AppColors.info,
           route: AppConstants.descargasRoute,
         ),
-        DashboardItem(
+        const DashboardItem(
           title: 'Historial',
           subtitle: 'Actividad reciente',
           icon: Icons.history,
           color: AppColors.textSecondary,
           route: AppConstants.historialRoute,
         ),
-        DashboardItem(
+        const DashboardItem(
           title: 'Ajustes',
           subtitle: 'Configuración',
           icon: Icons.settings,
@@ -115,11 +121,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 8),
               Text('ID: ${user.id}'),
               const SizedBox(height: 8),
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.verified_user, size: 16, color: Colors.green),
-                  const SizedBox(width: 4),
-                  const Text('MFA Activado'),
+                  Icon(Icons.verified_user, size: 16, color: Colors.green),
+                  SizedBox(width: 4),
+                  Text('MFA Activado'),
                 ],
               ),
             ],
@@ -212,6 +218,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final unreadCount = ref.watch(unreadCountProvider);
+    final dashboardItems = _buildDashboardItems(unreadCount);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: AppScaffold(
@@ -286,9 +294,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           mainAxisSpacing: AppConstants.spacingM,
                           childAspectRatio: 0.95,
                         ),
-                        itemCount: _dashboardItems.length,
+                        itemCount: dashboardItems.length,
                         itemBuilder: (context, index) {
-                          final item = _dashboardItems[index];
+                          final item = dashboardItems[index];
                           return DashboardCard(
                             item: item,
                             onTap: () => context.push(item.route),
