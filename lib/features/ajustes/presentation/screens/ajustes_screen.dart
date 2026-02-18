@@ -197,14 +197,14 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
                 context,
                 'Términos y condiciones',
                 Icons.description_outlined,
-                () => _showComingSoon(context),
+                () => context.push(AppConstants.legalTermsRoute),
               ),
               const Divider(height: 1),
               _buildTile(
                 context,
                 'Política de privacidad',
                 Icons.privacy_tip_outlined,
-                () => _showComingSoon(context),
+                () => context.push(AppConstants.legalPrivacyRoute),
               ),
             ],
           ),
@@ -361,16 +361,6 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
           );
         }).toList(),
         onChanged: onChanged,
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Disponible próximamente'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
       ),
     );
   }

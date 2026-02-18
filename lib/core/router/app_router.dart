@@ -15,6 +15,8 @@ import '../../features/notificaciones/presentation/screens/notificaciones_screen
 import '../../features/ajustes/presentation/screens/ajustes_screen.dart';
 import '../../features/descargas/presentation/screens/descargas_screen.dart';
 import '../../features/descargas/presentation/screens/historial_screen.dart';
+import '../../features/legal/presentation/pages/legal_terms_page.dart';
+import '../../features/legal/presentation/pages/privacy_policy_page.dart';
 import '../constants/app_constants.dart';
 import '../security/app_lock_controller.dart';
 import '../security/lock_screen.dart';
@@ -184,6 +186,16 @@ class AppRouter {
           path: AppConstants.historialRoute,
           name: 'historial',
           builder: (context, state) => const HistorialScreen(),
+        ),
+        GoRoute(
+          path: AppConstants.legalTermsRoute,
+          name: 'legal-terms',
+          builder: (context, state) => const LegalTermsPage(),
+        ),
+        GoRoute(
+          path: AppConstants.legalPrivacyRoute,
+          name: 'legal-privacy',
+          builder: (context, state) => const PrivacyPolicyPage(),
         ),
       ],
     );

@@ -21,6 +21,8 @@ class AppConstants {
   static const String ajustesRoute = '/ajustes';
   static const String descargasRoute = '/descargas';
   static const String historialRoute = '/historial';
+  static const String legalTermsRoute = '/legal/terms';
+  static const String legalPrivacyRoute = '/legal/privacy';
 
   // Spacing
   static const double spacingXS = 4.0;
