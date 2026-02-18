@@ -278,8 +278,11 @@ class _DescargasScreenState extends State<DescargasScreen> {
             ),
             title: Text(
               pdf.name,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 13,
+              ),
             ),
             subtitle: Text(fechaStr),
             trailing: IconButton(
