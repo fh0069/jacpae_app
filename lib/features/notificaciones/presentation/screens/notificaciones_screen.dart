@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../offers/data/repositories/offers_repository.dart';
 import '../../data/models/notification_item.dart';
 import '../providers/notifications_provider.dart';
 
@@ -25,6 +29,12 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
   static const _statusBarColor = Color(0xFFEB5C00);
   static const _appBarColor = Color(0xFFCDD1D5);
 
+  // IDs de notificaciones tipo oferta cuya descarga está en curso.
+  final Set<String> _downloadingOfferIds = {};
+
+  // Repositorio de ofertas. null si API_BASE_URL no está configurada.
+  OffersRepository? _offersRepository;
+
   static const _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -41,6 +51,10 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
   void initState() {
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+    final apiBaseUrl = dotenv.env['API_BASE_URL'] ?? '';
+    if (apiBaseUrl.isNotEmpty) {
+      _offersRepository = OffersRepository.create(apiBaseUrl: apiBaseUrl);
+    }
     // Trigger full load only if the controller has no data yet.
     // If HomeScreen already ran silentRefresh, items are shown immediately.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,6 +117,32 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  Future<void> _downloadOfferPdf(String notificationId) async {
+    if (_offersRepository == null) {
+      _showSnackBar('Configuración API inválida. Contacta con soporte.');
+      return;
+    }
+    if (_downloadingOfferIds.contains(notificationId)) return;
+    setState(() => _downloadingOfferIds.add(notificationId));
+    try {
+      await _offersRepository!.downloadCurrentOfferPdf();
+      if (!mounted) return;
+      _showSnackBar('Oferta descargada. Disponible en Descargas.');
+      context.go(AppConstants.descargasRoute);
+    } on UnauthorizedException {
+      if (!mounted) return;
+      _showSnackBar('Sesión caducada. Vuelve a iniciar sesión.');
+    } on OfferNotAvailableException {
+      if (!mounted) return;
+      _showSnackBar('No hay oferta activa en este momento.');
+    } catch (_) {
+      if (!mounted) return;
+      _showSnackBar('No se pudo descargar la oferta. Inténtalo de nuevo.');
+    } finally {
+      if (mounted) setState(() => _downloadingOfferIds.remove(notificationId));
+    }
   }
 
   // ── Formatting ──────────────────────────────────────────────────────────────
@@ -302,7 +342,11 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
           if (index == state.items.length) {
             return _buildLoadMoreButton(state.isLoadingMore);
           }
-          return _buildNotificationTile(state.items[index], state.markingIds);
+          return _buildNotificationTile(
+            state.items[index],
+            state.markingIds,
+            _downloadingOfferIds,
+          );
         },
       ),
     );
@@ -311,8 +355,11 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
   Widget _buildNotificationTile(
     NotificationItem item,
     Set<String> markingIds,
+    Set<String> downloadingOfferIds,
   ) {
     final isMarking = markingIds.contains(item.id);
+    final isOferta = item.type == 'oferta';
+    final isDownloadingOffer = downloadingOfferIds.contains(item.id);
 
     return InkWell(
       onTap: isMarking || item.isRead ? null : () => _onTapItem(item),
@@ -399,7 +446,35 @@ class _NotificacionesScreenState extends ConsumerState<NotificacionesScreen> {
               ),
             ),
 
-            // Per-item loading indicator while marking
+            // Botón "Ver oferta PDF" — solo para type == 'oferta'
+            if (isOferta)
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: isDownloadingOffer
+                    ? const SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Padding(
+                          padding: EdgeInsets.all(6),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.picture_as_pdf),
+                        tooltip: 'Ver oferta PDF',
+                        color: AppColors.primary,
+                        iconSize: 22,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () => _downloadOfferPdf(item.id),
+                      ),
+              ),
+
+            // Per-item loading indicator while marking as read
             if (isMarking)
               const Padding(
                 padding: EdgeInsets.only(left: 8, top: 4),

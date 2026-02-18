@@ -50,6 +50,15 @@ class PdfNotReadyException extends ApiException {
         );
 }
 
+/// 404 - Not Found: No active offer available
+class OfferNotAvailableException extends ApiException {
+  const OfferNotAvailableException()
+      : super(
+          message: 'No hay oferta activa en este momento.',
+          statusCode: 404,
+        );
+}
+
 /// Generic API error for other status codes
 class GenericApiException extends ApiException {
   const GenericApiException({required super.statusCode, String? message})
