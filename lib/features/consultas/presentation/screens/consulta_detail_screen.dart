@@ -187,10 +187,10 @@ class _ConsultaDetailScreenState extends State<ConsultaDetailScreen> {
                           borderRadius: BorderRadius.circular(AppConstants.radiusM),
                           border: Border.all(color: AppColors.warning),
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
-                            const Icon(Icons.pending, color: AppColors.warning),
-                            const SizedBox(width: AppConstants.spacingM),
+                            Icon(Icons.pending, color: AppColors.warning),
+                            SizedBox(width: AppConstants.spacingM),
                             Expanded(
                               child: Text(
                                 'Pendiente de respuesta',
