@@ -73,7 +73,7 @@ class InvoiceListTile extends StatelessWidget {
                     // Date
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.calendar_today,
                           size: 14,
                           color: AppColors.textSecondary,
