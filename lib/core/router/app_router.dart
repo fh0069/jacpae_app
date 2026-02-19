@@ -44,7 +44,7 @@ class AppRouter {
         final currentPath = state.uri.path;
 
         // DEBUG: Print auth state
-        print('🔐 Router redirect: path=$currentPath, auth=$isAuthenticated, aal2=$isAAL2');
+        if (kDebugMode) debugPrint('🔐 Router redirect: path=$currentPath, auth=$isAuthenticated, aal2=$isAAL2');
 
         // Public routes (no auth required)
         final isLoginRoute = currentPath == AppConstants.loginRoute;
@@ -65,7 +65,7 @@ class AppRouter {
           // Unlocked — leave lock screen if still on it
           if (isLockRoute) return AppConstants.homeRoute;
 
-          print('✅ User is AAL2, redirecting away from auth pages');
+          if (kDebugMode) debugPrint('✅ User is AAL2, redirecting away from auth pages');
           if (isLoginRoute || isMFARoute) {
             return AppConstants.homeRoute;
           }
@@ -75,27 +75,27 @@ class AppRouter {
 
         // If user is authenticated but not AAL2
         if (isAuthenticated && !isAAL2) {
-          print('⚠️  User is AAL1, needs MFA verification');
+          if (kDebugMode) debugPrint('⚠️  User is AAL1, needs MFA verification');
           // Allow access to MFA routes
           if (isMFARoute) {
-            print('📍 Already on MFA route, allowing');
+            if (kDebugMode) debugPrint('📍 Already on MFA route, allowing');
             return null;
           }
           // Redirect to MFA verification (the screen will handle enroll vs verify)
-          print('🔄 Redirecting to MFA verify');
+          if (kDebugMode) debugPrint('🔄 Redirecting to MFA verify');
           return AppConstants.mfaVerifyRoute;
         }
 
         // If user is not authenticated
         if (!isAuthenticated) {
-          print('❌ User not authenticated');
+          if (kDebugMode) debugPrint('❌ User not authenticated');
           // Allow access to login
           if (isLoginRoute) {
-            print('📍 Already on login, allowing');
+            if (kDebugMode) debugPrint('📍 Already on login, allowing');
             return null;
           }
           // Redirect to login for any protected route
-          print('🔄 Redirecting to login');
+          if (kDebugMode) debugPrint('🔄 Redirecting to login');
           return AppConstants.loginRoute;
         }
 
