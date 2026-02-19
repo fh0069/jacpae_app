@@ -24,7 +24,6 @@ class _MFAEnrollScreenState extends ConsumerState<MFAEnrollScreen> {
   bool _isVerifying = false;
   String? _error;
 
-  AuthMFAEnrollResponse? _enrollResponse;
   String? _factorId;
   String? _secret;
 
@@ -53,7 +52,6 @@ class _MFAEnrollScreenState extends ConsumerState<MFAEnrollScreen> {
       );
 
       setState(() {
-        _enrollResponse = response;
         _factorId = response.id;
         _secret = response.totp?.secret;
         _isLoading = false;

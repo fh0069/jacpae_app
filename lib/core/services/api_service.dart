@@ -4,8 +4,6 @@ class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  static const String _baseUrl = 'https://api.example.com'; // Placeholder URL
-
   /// GET request - NOT IMPLEMENTED
   /// TODO PHASE 2: Implement HTTP GET requests
   Future<Map<String, dynamic>> get(String endpoint) async {
