@@ -262,10 +262,10 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.accent,
-        surface: const Color(0xFF1E1E1E),
+        surface: Color(0xFF1E1E1E),
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: const Color(0xFF121212),
