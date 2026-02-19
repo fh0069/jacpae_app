@@ -380,7 +380,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.filter_alt_outlined,
               size: 64,
               color: AppColors.textSecondary,
@@ -427,7 +427,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               size: 64,
               color: AppColors.error,
@@ -457,7 +457,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.receipt_long,
               size: 64,
               color: AppColors.textSecondary,
