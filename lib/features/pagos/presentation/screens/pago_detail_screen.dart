@@ -177,10 +177,10 @@ class _PagoDetailScreenState extends State<PagoDetailScreen> {
                           borderRadius: BorderRadius.circular(AppConstants.radiusM),
                           border: Border.all(color: AppColors.info),
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
-                            const Icon(Icons.info_outline, color: AppColors.info),
-                            const SizedBox(width: AppConstants.spacingM),
+                            Icon(Icons.info_outline, color: AppColors.info),
+                            SizedBox(width: AppConstants.spacingM),
                             Expanded(
                               child: Text(
                                 'FASE 1: Integración de pagos (Redsys) pendiente',
