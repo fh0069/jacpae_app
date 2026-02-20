@@ -45,6 +45,9 @@ dependencies:
   # Biometric authentication (App Lock)
   local_auth: ^2.3.0
 
+  # Persist App Lock timestamp (robust lifecycle handling)
+  shared_preferences: ^2.2.3
+
   # Markdown rendering (reemplazo oficial de flutter_markdown, discontinuado)
   flutter_markdown_plus: ^1.0.7
 

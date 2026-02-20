@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
+import 'core/security/app_lock_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 
@@ -11,6 +12,9 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Eager initialization: ensures AppLockController is always instantiated
+    // and its WidgetsBindingObserver registered from app startup.
+    ref.watch(appLockControllerProvider);
     final router = ref.watch(AppRouter.provider);
 
     return MaterialApp.router(
