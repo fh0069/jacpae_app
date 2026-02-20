@@ -23,6 +23,7 @@ class DashboardCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.spacingM),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Icon with badge
@@ -63,26 +64,38 @@ class DashboardCard extends StatelessWidget {
               ),
               const SizedBox(height: AppConstants.spacingM),
 
-              // Title
-              Text(
-                item.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: item.color,
-                    ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppConstants.spacingS),
+              // Texts (shrink safely if vertical space is tight)
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title
+                      Text(
+                        item.title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: item.color,
+                            ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppConstants.spacingS),
 
-              // Subtitle
-              Text(
-                item.subtitle,
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
+                      // Subtitle
+                      Text(
+                        item.subtitle,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

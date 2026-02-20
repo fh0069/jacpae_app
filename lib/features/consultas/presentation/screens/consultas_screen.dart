@@ -15,18 +15,15 @@ class ConsultasScreen extends StatefulWidget {
 }
 
 class _ConsultasScreenState extends State<ConsultasScreen> {
-  // Colores del patrón visual corporativo
-  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
-  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+  static const _statusBarColor = Color(0xFFEB5C00);
+  static const _appBarColor = Color(0xFFCDD1D5);
 
-  // Estilo para iconos blancos en status bar
   static const _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
     statusBarBrightness: Brightness.dark,
   );
 
-  // Estilo neutro para restaurar al salir
   static const _defaultStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -45,20 +42,17 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
     super.dispose();
   }
 
-  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
   Widget _buildCustomHeader(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Franja naranja (status bar)
         Container(
           width: double.infinity,
           height: statusBarHeight,
           color: _statusBarColor,
         ),
-        // AppBar gris
         Container(
           width: double.infinity,
           height: kToolbarHeight,
@@ -66,12 +60,11 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             children: [
-              // Botón back
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                icon:
+                    const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                 onPressed: () => context.go(AppConstants.homeRoute),
               ),
-              // Título
               const Text(
                 'Consultas',
                 style: TextStyle(
@@ -80,7 +73,6 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                   fontSize: 20,
                 ),
               ),
-              // Logo centrado
               Expanded(
                 child: Center(
                   child: Image.asset(
@@ -90,7 +82,6 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                   ),
                 ),
               ),
-              // Espacio para equilibrar
               const SizedBox(width: 48),
             ],
           ),
@@ -108,17 +99,14 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
         showInfoBar: false,
         body: Column(
           children: [
-            // Header corporativo
             _buildCustomHeader(context),
-
-            // Contenido
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(AppConstants.spacingM),
                 children: [
-                  // Header text
                   Padding(
-                    padding: const EdgeInsets.only(bottom: AppConstants.spacingL),
+                    padding:
+                        const EdgeInsets.only(bottom: AppConstants.spacingL),
                     child: Text(
                       'Selecciona el tipo de documento que deseas consultar',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -126,8 +114,6 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                           ),
                     ),
                   ),
-
-                  // Facturas - Enabled
                   _ConsultaOptionCard(
                     icon: Icons.receipt_long,
                     title: 'Facturas',
@@ -135,10 +121,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                     enabled: true,
                     onTap: () => context.push(AppConstants.facturasRoute),
                   ),
-
                   const SizedBox(height: AppConstants.spacingM),
-
-                  // Albaranes - Disabled
                   _ConsultaOptionCard(
                     icon: Icons.local_shipping,
                     title: 'Albaranes',
@@ -147,10 +130,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                     badge: 'Próximamente',
                     onTap: () => _showComingSoonSnackbar(context, 'Albaranes'),
                   ),
-
                   const SizedBox(height: AppConstants.spacingM),
-
-                  // Pedidos - Disabled
                   _ConsultaOptionCard(
                     icon: Icons.shopping_cart,
                     title: 'Pedidos',
@@ -179,7 +159,6 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
   }
 }
 
-/// Card widget for each consultation option
 class _ConsultaOptionCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -216,7 +195,6 @@ class _ConsultaOptionCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppConstants.spacingM),
           child: Row(
             children: [
-              // Icon container
               Container(
                 width: 56,
                 height: 56,
@@ -230,23 +208,26 @@ class _ConsultaOptionCard extends StatelessWidget {
                   color: iconColor,
                 ),
               ),
-
               const SizedBox(width: AppConstants.spacingM),
-
-              // Text content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text(
-                          title,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                  ),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         if (badge != null) ...[
                           const SizedBox(width: AppConstants.spacingS),
@@ -278,12 +259,12 @@ class _ConsultaOptionCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: textColor ?? AppColors.textSecondary,
                           ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-
-              // Arrow icon
               Icon(
                 enabled ? Icons.arrow_forward_ios : Icons.lock_outline,
                 size: 16,

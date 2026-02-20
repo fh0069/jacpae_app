@@ -58,28 +58,38 @@ class LegalTermsPage extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                icon:
+                    const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                 tooltip: 'Volver',
                 onPressed: () => context.pop(),
               ),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 20,
-                ),
-              ),
+
+              // ✅ Title must be constrained to avoid overflow
               Expanded(
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: 32,
-                    fit: BoxFit.contain,
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 48),
+
+              // ✅ Keep logo but don’t let it fight for width with the title
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 32,
+                  fit: BoxFit.contain,
+                ),
+              ),
+
+              // ✅ Balance spacing without stealing too much width
+              const SizedBox(width: 8),
             ],
           ),
         ),
