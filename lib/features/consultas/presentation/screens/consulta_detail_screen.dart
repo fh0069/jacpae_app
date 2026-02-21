@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../data/mock_data/consultas_mock.dart';
+import '../../data/fixtures/consultas_fixtures.dart';
 
 /// Consulta detail screen
 class ConsultaDetailScreen extends StatefulWidget {
@@ -106,7 +106,7 @@ class _ConsultaDetailScreenState extends State<ConsultaDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final consulta = ConsultasMock.getById(widget.consultaId);
+    final consulta = ConsultasFixtures.getById(widget.consultaId);
 
     if (consulta == null) {
       return AnnotatedRegion<SystemUiOverlayStyle>(

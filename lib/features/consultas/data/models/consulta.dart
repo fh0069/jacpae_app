@@ -1,4 +1,4 @@
-/// Consulta model (mock data)
+/// Consulta model
 class Consulta {
   final String id;
   final String titulo;

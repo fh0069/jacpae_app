@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../data/mock_data/notificaciones_mock.dart';
+import '../providers/notifications_provider.dart';
 
-/// Notificaciones list screen with mock data — preserved for Phase 2.
-/// Currently inactive; the active route uses [NotificacionesScreen] (en desarrollo).
-class NotificacionesFullScreen extends StatefulWidget {
+/// Legacy notifications screen.
+/// Not used by the current router configuration.
+class NotificacionesFullScreen extends ConsumerStatefulWidget {
   const NotificacionesFullScreen({super.key});
 
   @override
-  State<NotificacionesFullScreen> createState() =>
+  ConsumerState<NotificacionesFullScreen> createState() =>
       _NotificacionesFullScreenState();
 }
 
-class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
-  // Colores del patrón visual corporativo
-  static const _statusBarColor = Color(0xFFEB5C00); // Naranja corporativo
-  static const _appBarColor = Color(0xFFCDD1D5); // Gris AppBar
+class _NotificacionesFullScreenState
+    extends ConsumerState<NotificacionesFullScreen> {
+  static const _statusBarColor = Color(0xFFEB5C00);
+  static const _appBarColor = Color(0xFFCDD1D5);
 
-  // Estilo para iconos blancos en status bar
   static const _lightStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
     statusBarBrightness: Brightness.dark,
   );
 
-  // Estilo neutro para restaurar al salir
   static const _defaultStatusBarStyle = SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -38,6 +37,13 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
   void initState() {
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final s = ref.read(notificationsControllerProvider);
+      if (s.items.isEmpty && !s.isLoading && s.errorMessage == null) {
+        ref.read(notificationsControllerProvider.notifier).refresh();
+      }
+    });
   }
 
   @override
@@ -76,20 +82,17 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
     }
   }
 
-  /// Header corporativo: [StatusBar naranja] + [AppBar gris con logo]
   Widget _buildCustomHeader(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Franja naranja (status bar)
         Container(
           width: double.infinity,
           height: statusBarHeight,
           color: _statusBarColor,
         ),
-        // AppBar gris
         Container(
           width: double.infinity,
           height: kToolbarHeight,
@@ -98,7 +101,6 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
           child: Row(
             children: [
               const SizedBox(width: 12),
-              // Título
               const Text(
                 'Notificaciones',
                 style: TextStyle(
@@ -107,7 +109,6 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
                   fontSize: 20,
                 ),
               ),
-              // Logo centrado
               Expanded(
                 child: Center(
                   child: Image.asset(
@@ -117,7 +118,6 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
                   ),
                 ),
               ),
-              // Espacio para equilibrar
               const SizedBox(width: 48),
             ],
           ),
@@ -128,7 +128,7 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notificaciones = NotificacionesMock.notificaciones;
+    final state = ref.watch(notificationsControllerProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
@@ -137,75 +137,105 @@ class _NotificacionesFullScreenState extends State<NotificacionesFullScreen> {
         showInfoBar: false,
         body: Column(
           children: [
-            // Header corporativo
             _buildCustomHeader(context),
-
-            // Lista de notificaciones
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppConstants.spacingM),
-                itemCount: notificaciones.length,
-                itemBuilder: (context, index) {
-                  final notif = notificaciones[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
-                    color: notif.leida
-                        ? null
-                        : AppColors.primary.withValues(alpha: 0.05),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor:
-                            _getTipoColor(notif.tipo).withValues(alpha: 0.2),
-                        child: Icon(
-                          _getTipoIcon(notif.tipo),
-                          color: _getTipoColor(notif.tipo),
-                        ),
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(notif.titulo)),
-                          if (!notif.leida)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                        ],
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: AppConstants.spacingS),
-                          Text(
-                            notif.mensaje,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: AppConstants.spacingS),
-                          Text(
-                            _formatFecha(notif.fecha),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Detalle disponible en Fase 2'),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
+            Expanded(child: _buildContent(state)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContent(NotificationsState state) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.spacingL),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+              const SizedBox(height: AppConstants.spacingM),
+              Text(state.errorMessage!, textAlign: TextAlign.center),
+              const SizedBox(height: AppConstants.spacingL),
+              FilledButton.icon(
+                onPressed: () =>
+                    ref.read(notificationsControllerProvider.notifier).refresh(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (state.items.isEmpty) {
+      return const Center(child: Text('No hay notificaciones'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppConstants.spacingM),
+      itemCount: state.items.length,
+      itemBuilder: (context, index) {
+        final item = state.items[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
+          color: item.isRead
+              ? null
+              : AppColors.primary.withValues(alpha: 0.05),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor:
+                  _getTipoColor(item.type).withValues(alpha: 0.2),
+              child: Icon(
+                _getTipoIcon(item.type),
+                color: _getTipoColor(item.type),
+              ),
+            ),
+            title: Row(
+              children: [
+                Expanded(child: Text(item.title)),
+                if (!item.isRead)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppConstants.spacingS),
+                Text(
+                  item.body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppConstants.spacingS),
+                Text(
+                  _formatFecha(item.createdAt),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Detalle disponible en Fase 2'),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

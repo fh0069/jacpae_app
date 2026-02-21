@@ -1,7 +1,7 @@
 import '../models/consulta.dart';
 
-/// Mock consultas data for Phase 1
-class ConsultasMock {
+/// Sample consultas data (fixtures) — used while backend endpoint is pending.
+class ConsultasFixtures {
   static final List<Consulta> consultas = [
     Consulta(
       id: '1',

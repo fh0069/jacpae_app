@@ -1,4 +1,4 @@
-/// Pago model (mock data)
+/// Pago model
 class Pago {
   final String id;
   final String concepto;

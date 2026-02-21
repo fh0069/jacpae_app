@@ -1,7 +1,7 @@
 import '../models/pago.dart';
 
-/// Mock pagos data for Phase 1
-class PagosMock {
+/// Sample pagos data (fixtures) — used while Redsys backend integration is pending (Phase 2).
+class PagosFixtures {
   static final List<Pago> pagos = [
     Pago(
       id: '1',

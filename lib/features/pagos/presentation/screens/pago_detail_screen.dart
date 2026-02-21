@@ -5,7 +5,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../data/mock_data/pagos_mock.dart';
+import '../../data/fixtures/pagos_fixtures.dart';
 
 /// Pago detail screen
 class PagoDetailScreen extends StatefulWidget {
@@ -107,7 +107,7 @@ class _PagoDetailScreenState extends State<PagoDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pago = PagosMock.getById(widget.pagoId);
+    final pago = PagosFixtures.getById(widget.pagoId);
 
     if (pago == null) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
