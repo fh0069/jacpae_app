@@ -36,7 +36,7 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
   );
 
   // ============================================
-  // ESTADO LOCAL - Preferencias de notificaciones (mock)
+  // ESTADO LOCAL - Preferencias de notificaciones
   // ============================================
   bool _avisoReparto = true;
   bool _avisoFacturaEmitida = true;

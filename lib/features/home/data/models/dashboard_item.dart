@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Dashboard menu item model (mock data)
+/// Dashboard menu item model
 class DashboardItem {
   final String title;
   final String subtitle;
