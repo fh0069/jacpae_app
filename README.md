@@ -1,28 +1,38 @@
-Jacpae App
+# Jacpae App
 
 Secure B2B mobile application with mandatory MFA (AAL2), biometric App Lock and authenticated document delivery.
 
-Flutter mobile application for professional company-client communication.
+Flutter mobile application for professional company-client communication.  
 Implements Supabase authentication with enforced MFA, secure backend integration for notifications, and authenticated PDF offer downloads with local persistence.
 
-🎯 Project Overview
+---
 
-Version: 1.0.0+1
-Status: ✅ Production-ready authentication, security layer and backend integration for notifications & offers.
+## 🔗 Backend API Repository
 
-Built with:
+This mobile client integrates with a secure backend API:
 
-Flutter (stable)
+https://github.com/fh0069/jacpae_api
 
-Riverpod (state management)
+---
 
-GoRouter (navigation + security guards)
+## 🎯 Project Overview
 
-Supabase (authentication + JWT sessions)
+**Version:** 1.0.0+1  
+**Status:** Production-ready security layer and backend-integrated modules (notifications & offers).
 
-Custom REST API (notifications & offers)
+### Built with
 
-🏗️ Project Structure
+- Flutter (stable)
+- Riverpod (state management)
+- GoRouter (navigation + security guards)
+- Supabase (authentication + JWT sessions)
+- Custom REST API (notifications & offers)
+
+---
+
+## 🏗️ Project Structure
+
+```text
 lib/
 ├── main.dart
 ├── app.dart
@@ -46,230 +56,262 @@ lib/
     ├── pagos/             # Business module (fixtures pending Redsys)
     ├── legal/             # Terms & privacy (Markdown)
     └── ajustes/
-Architecture Pattern
+```
 
-Feature-based modular architecture
+### Architecture Pattern
 
-Repository pattern for API access
+- Feature-based modular architecture
+- Repository pattern for API access
+- Riverpod StateNotifier for state management
+- GoRouter with security guards
+- Clear separation: data / repository / presentation
 
-Riverpod StateNotifier for state management
+---
 
-GoRouter with security guards
+## ⚙️ Technical Highlights
 
-Clear separation: data / repository / presentation
+- Strict AAL2 enforcement (MFA mandatory)
+- Biometric App Lock with persisted background timestamp
+- Optimistic UI updates with rollback safety
+- Repository pattern with explicit error mapping
+- 19 unit tests covering controller, repository and network layers
 
-🔐 Authentication & Security
-Supabase Authentication
+---
 
-Email/password authentication
+## 🔐 Authentication & Security
 
-Mandatory MFA TOTP (AAL2 required)
+### Supabase Authentication
 
-Session management with JWT
+- Email/password authentication
+- Mandatory MFA TOTP (AAL2 required)
+- Session management with JWT
+- PKCE flow
+- No `service_role` keys in client
 
-PKCE flow
+### Assurance Levels
 
-No service_role keys in client
-
-Assurance Levels
-
-AAL1 → Email/password only → ❌ No access
-
-AAL2 → Email/password + TOTP → ✅ Full access
+- **AAL1** → Email/password only → ❌ No access
+- **AAL2** → Email/password + TOTP → ✅ Full access
 
 Navigation guards enforce AAL2 before accessing private routes.
 
-🔒 App Lock (Biometric)
+---
+
+## 🔒 App Lock (Biometric)
 
 After 10 minutes in background, the app requires biometric unlock:
 
-Fingerprint / Face ID / Device credential
+- Fingerprint / Face ID / Device credential
+- Uses `WidgetsBindingObserver` lifecycle tracking
+- Background timestamp persisted via `SharedPreferences`
+- Acts as local security reinforcement (does not replace MFA)
+- Automatically disabled if device has no biometric capability
 
-Uses WidgetsBindingObserver lifecycle tracking
+**Files:**
 
-Background timestamp persisted via SharedPreferences
+- `core/security/biometric_service.dart`
+- `core/security/app_lock_controller.dart`
+- `core/security/lock_screen.dart`
 
-Does not replace MFA — acts as local security reinforcement
+---
 
-Automatically disabled if device has no biometric capability
-
-Files:
-
-core/security/biometric_service.dart
-
-core/security/app_lock_controller.dart
-
-core/security/lock_screen.dart
-
-🔔 Notifications (Backend Integrated)
+## 🔔 Notifications (Backend Integrated)
 
 Notifications are fully integrated with the backend API.
 
-Endpoints
+### Endpoints
 
-GET /notifications?limit=&offset=
+- `GET /notifications?limit=&offset=`
+- `PATCH /notifications/{id}/read`
 
-PATCH /notifications/{id}/read
+### Features
 
-Features
-
-JWT-authenticated requests (Supabase session token)
-
-Pagination (limit/offset)
-
-Optimistic UI updates
-
-Mark single notification as read
-
-Mark all as read (batch with partial rollback)
-
-Proper error handling (Unauthorized, Forbidden, Network, etc.)
+- JWT-authenticated requests (Supabase session token)
+- Pagination (limit/offset)
+- Optimistic UI updates
+- Mark single notification as read
+- Mark all as read (batch with partial rollback)
+- Proper error handling (Unauthorized, Forbidden, Network, etc.)
 
 State handled via:
 
-NotificationsRepository
+- `NotificationsRepository`
+- `NotificationsController` (Riverpod)
 
-NotificationsController (Riverpod)
-
-Shared state between Home badge and Notifications screen
+Shared state between Home badge and Notifications screen.
 
 No mock data in active flow.
 
-📄 Offers – Authenticated PDF Download
+---
 
-If a notification has type == "oferta":
+## 📄 Offers – Authenticated PDF Download
 
-Shows PDF icon
+If a notification has `type == "oferta"`:
 
-Calls backend via OffersRepository
+- Shows PDF icon
+- Calls backend via `OffersRepository`
+- Uses authenticated request (JWT)
+- Handles:
+  - 401 Unauthorized
+  - 404 OfferNotAvailableException
+- Downloads PDF
+- Stores locally
+- Redirects to Descargas screen
 
-Uses authenticated request (JWT)
+---
 
-Handles:
-
-401 Unauthorized
-
-404 OfferNotAvailableException
-
-Downloads PDF
-
-Stores locally
-
-Redirects to Descargas screen
-
-📦 Descargas (Local Persistence)
+## 📦 Descargas (Local Persistence)
 
 Downloaded PDFs:
 
-Stored locally
+- Stored locally
+- Listed in Descargas screen
+- Openable from device
+- Deletable with optimistic update
 
-Listed in Descargas screen
+**Model:** `DownloadedPdf`
 
-Openable from device
+---
 
-Deletable with optimistic update
-
-Model:
-
-DownloadedPdf
-
-🚧 Business Modules Pending Full Backend
+## 🚧 Business Modules Pending Full Backend
 
 The following modules use temporary fixtures until API integration:
 
-consultas
+- `consultas`
+- `pagos` (Redsys integration pending)
 
-pagos (Redsys integration pending)
+No `mock_data` directories remain in the project.
 
-No mock_data directories remain in the project.
+---
 
-🚀 Getting Started
-Prerequisites
+## 🚀 Getting Started
 
-Flutter SDK (stable)
+### Prerequisites
 
-Dart SDK
+- Flutter SDK (stable)
+- Dart SDK
+- Android Studio / VS Code
+- Supabase project (with TOTP enabled)
+- Backend API running
 
-Android Studio / VS Code
+### Installation
 
-Supabase project (with TOTP enabled)
-
-Backend API running
-
-Installation
+```bash
 cd C:\development\jacpae_app
 flutter pub get
-Environment Configuration
+```
 
-This project supports .env configuration.
+---
 
-Files present:
+## 🔧 Environment Configuration
 
-.env.example
+This project supports `.env` configuration.
 
-run_dev.bat
+**Files present:**
 
-run_dev.sh
+- `.env.example`
+- `run_dev.bat`
+- `run_dev.sh`
+- `docs/setup.md`
 
-docs/setup.md
+Configure your `.env` with:
 
-Configure your .env with:
-
+```env
 SUPABASE_URL=...
 SUPABASE_ANON_KEY=...
 API_BASE_URL=...
+```
 
 Run:
 
+```bash
 run_dev.bat
+```
 
 or
 
+```bash
 flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
-🛠️ Development Commands
+```
+
+---
+
+## 🛠️ Development Commands
+
+```bash
 flutter analyze
 flutter test
 dart format lib/
 flutter build apk
+```
 
 Current state:
 
-flutter analyze → 0 issues
+- `flutter analyze` → 0 issues
 
-🛡️ Security Architecture
+---
 
-Supabase JWT-based authentication
+## 🛡️ Security Architecture
 
-MFA TOTP enforced (AAL2)
+- Supabase JWT-based authentication
+- MFA TOTP enforced (AAL2)
+- Biometric App Lock (10 min inactivity)
+- Secure API communication over HTTPS
+- No credential persistence
+- No `service_role` exposure
 
-Biometric App Lock (10 min inactivity)
+---
 
-Secure API communication over HTTPS
+## 🧪 Testing
 
-No credential persistence
+Total: **19 unit tests – all passing.**
 
-No service_role exposure
+The project includes unit tests covering the most critical application layers.
 
-Optimistic updates with rollback safety
+### Covered Components
 
-📄 License
+| Layer | Component | Scope |
+|-------|-----------|-------|
+| Controller | `NotificationsController` | Pagination, optimistic updates, deduplication, error handling |
+| Repository | `NotificationsRepository` | Token handling, pagination logic, exception propagation |
+| Repository | `OffersRepository` | Auth validation and secure PDF download flow |
+| Core Network | `ApiClient` | HTTP status mapping, JSON decoding, binary responses |
+
+### Test Characteristics
+
+- No real network calls
+- No real Supabase instance required
+- Platform channels isolated using test fakes
+- Error propagation explicitly verified
+- State transitions validated
+- `flutter analyze` → 0 issues
+
+### Run Tests
+
+```bash
+flutter test
+```
+
+---
+
+## 📄 License
 
 Internal software developed for José Santiago Vargas S.A.
 
-Private pilot deployment with selected professional clients.
+Private pilot deployment with selected professional clients.  
 Not open-source.
 
-📌 Notes
+---
 
-Authentication and notification infrastructure are production-ready.
+## 📌 Notes
 
-Offers PDF delivery is fully operational.
+- Authentication and notification infrastructure are production-ready.
+- Offers PDF delivery is fully operational.
+- Payments (Redsys) integration pending.
+- Backend expansion for additional business modules planned.
 
-Payments (Redsys) integration pending.
+---
 
-Backend expansion for additional business modules planned.
-
-👥 Contact
+## 👥 Contact
 
 For technical questions, review repository structure and inline documentation.
-
