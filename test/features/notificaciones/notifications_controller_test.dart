@@ -183,4 +183,41 @@ void main() {
       expect(ctrl.state.isLoadingMore, isFalse);     // reset correcto
     },
   );
+
+  // ── Caso 6 ──────────────────────────────────────────────────────────────────
+
+  test(
+    'loadMore() fallo → re-lanza excepción, isLoadingMore=false, items intactos',
+    () async {
+      // Página 1: estado real vía refresh()
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: 0,
+        ),
+      ).thenAnswer(
+        (_) async => NotificationsResult(
+          items: [_item(id: '1')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+
+      // Página 2: lanza excepción
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: 1,
+        ),
+      ).thenThrow(Exception('boom'));
+
+      await ctrl.refresh();
+
+      await expectLater(ctrl.loadMore(), throwsException);
+
+      expect(ctrl.state.isLoadingMore, isFalse);      // catch resetea el flag
+      expect(ctrl.state.items.length, 1);              // items no se vacían
+      expect(ctrl.state.items.first.id, '1');          // item original intacto
+    },
+  );
 }
