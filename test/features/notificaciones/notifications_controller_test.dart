@@ -220,4 +220,48 @@ void main() {
       expect(ctrl.state.items.first.id, '1');          // item original intacto
     },
   );
+
+  // ── Caso 7 ──────────────────────────────────────────────────────────────────
+
+  test(
+    'loadMore() deduplicates by id and does not append duplicates',
+    () async {
+      // Página 1: item id='1', hasMore=true
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: 0,
+        ),
+      ).thenAnswer(
+        (_) async => NotificationsResult(
+          items: [_item(id: '1')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+
+      // Página 2: mismo id='1' — debe ser descartado por _deduplicate
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: 1,
+        ),
+      ).thenAnswer(
+        (_) async => NotificationsResult(
+          items: [_item(id: '1')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+
+      await ctrl.refresh();
+      await ctrl.loadMore();
+
+      expect(ctrl.state.items.length, 1);        // duplicado descartado
+      expect(ctrl.state.items.first.id, '1');    // item original intacto
+      expect(ctrl.state.offset, 2);              // nextOffset aplicado igualmente
+      expect(ctrl.state.hasMore, isFalse);
+      expect(ctrl.state.isLoadingMore, isFalse);
+    },
+  );
 }
