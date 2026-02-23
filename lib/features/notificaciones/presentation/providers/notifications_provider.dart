@@ -106,8 +106,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
         offset: 0,
       );
       if (!mounted) return;
+      final merged = _preserveLocalReadFlags(result.items);
       state = NotificationsState(
-        items: result.items,
+        items: merged,
         hasMore: result.hasMore,
         offset: result.nextOffset,
       );
@@ -231,8 +232,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
         offset: fromOffset,
       );
       if (!mounted) return;
+      final preserved = _preserveLocalReadFlags(result.items);
       final newItems =
-          append ? _deduplicate(state.items, result.items) : result.items;
+          append ? _deduplicate(state.items, preserved) : preserved;
       state = NotificationsState(
         items: newItems,
         hasMore: result.hasMore,
@@ -264,6 +266,23 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       if (!mounted) return;
       state = const NotificationsState(errorMessage: _networkError);
     }
+  }
+
+  /// Returns [incoming] with [isRead] forced to true for any item whose id
+  /// is already marked as read in the current local state.
+  /// Prevents a refresh from reverting optimistic reads when the backend
+  /// still returns read_at=null.
+  List<NotificationItem> _preserveLocalReadFlags(
+    List<NotificationItem> incoming,
+  ) {
+    final localReadIds = {
+      for (final n in state.items)
+        if (n.isRead) n.id,
+    };
+    if (localReadIds.isEmpty) return incoming;
+    return incoming
+        .map((n) => localReadIds.contains(n.id) ? n.copyWith(isRead: true) : n)
+        .toList();
   }
 
   /// Appends [incoming] to [existing], deduplicating by id.
