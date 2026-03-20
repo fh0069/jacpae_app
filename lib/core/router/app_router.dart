@@ -14,7 +14,7 @@ import '../../features/pagos/presentation/screens/pago_detail_screen.dart';
 import '../../features/notificaciones/presentation/screens/notificaciones_screen.dart';
 import '../../features/ajustes/presentation/screens/ajustes_screen.dart';
 import '../../features/descargas/presentation/screens/descargas_screen.dart';
-import '../../features/descargas/presentation/screens/historial_screen.dart';
+import '../../features/finance/presentation/screens/extracto_screen.dart';
 import '../../features/legal/presentation/pages/legal_terms_page.dart';
 import '../../features/legal/presentation/pages/privacy_policy_page.dart';
 import '../constants/app_constants.dart';
@@ -185,7 +185,7 @@ class AppRouter {
         GoRoute(
           path: AppConstants.historialRoute,
           name: 'historial',
-          builder: (context, state) => const HistorialScreen(),
+          builder: (context, state) => const ExtractoScreen(),
         ),
         GoRoute(
           path: AppConstants.legalTermsRoute,
