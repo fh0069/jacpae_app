@@ -9,7 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../data/models/invoice.dart';
 import '../../data/repositories/invoices_repository.dart';
-import '../widgets/date_filter_section.dart';
+import '../../../../core/widgets/date_filter_section.dart';
 import '../widgets/invoice_list_tile.dart';
 
 /// Screen state enum for managing UI states
