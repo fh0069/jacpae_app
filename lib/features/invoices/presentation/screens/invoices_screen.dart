@@ -67,9 +67,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   // Repository
   late final InvoicesRepository _repository;
 
-  // Tab selection (0 = Todas, 1 = Pendientes)
-  int _selectedTab = 0;
-
   @override
   void initState() {
     super.initState();
@@ -230,23 +227,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     _loadInvoices(refresh: true);
   }
 
-  void _onTabChanged(int index) {
-    if (index == 1) {
-      // "Pendientes de pago" is disabled
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Filtro de pendientes disponible próximamente'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _selectedTab = index;
-    });
-  }
-
   Future<void> _downloadPdf(Invoice invoice) async {
     final invoiceId = invoice.invoiceId;
     if (invoiceId == null) return;
@@ -318,42 +298,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               onApplyFilter: _applyFilter,
             ),
 
-            // Tab segments
-            _buildTabSegments(),
-
             // Content based on state
             Expanded(
               child: _buildContent(),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTabSegments() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
-      child: Row(
-        children: [
-          Expanded(
-            child: _TabButton(
-              label: 'Todas',
-              isSelected: _selectedTab == 0,
-              onTap: () => _onTabChanged(0),
-            ),
-          ),
-          const SizedBox(width: AppConstants.spacingS),
-          Expanded(
-            child: _TabButton(
-              label: 'Pendientes de pago',
-              isSelected: _selectedTab == 1,
-              isDisabled: true,
-              badge: 'Próximamente',
-              onTap: () => _onTabChanged(1),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -522,82 +472,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                 icon: const Icon(Icons.expand_more),
                 label: const Text('Cargar más'),
               ),
-      ),
-    );
-  }
-}
-
-/// Tab button widget for the segment control
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final bool isDisabled;
-  final String? badge;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.isDisabled = false,
-    this.badge,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = isSelected
-        ? AppColors.primary
-        : (isDisabled ? Colors.grey.shade200 : Colors.grey.shade100);
-    final textColor = isSelected
-        ? Colors.white
-        : (isDisabled ? AppColors.textSecondary : AppColors.textPrimary);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppConstants.radiusM),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppConstants.spacingS,
-          horizontal: AppConstants.spacingM,
-        ),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(AppConstants.radiusM),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (badge != null && isDisabled) ...[
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: AppColors.info,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  badge!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

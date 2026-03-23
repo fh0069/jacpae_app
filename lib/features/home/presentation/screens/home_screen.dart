@@ -88,9 +88,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           route: AppConstants.descargasRoute,
         ),
         const DashboardItem(
-          title: 'Historial',
-          subtitle: 'Actividad reciente',
-          icon: Icons.history,
+          title: 'Extracto',
+          subtitle: 'Movimientos y saldo',
+          icon: Icons.receipt_long_outlined,
           color: AppColors.textSecondary,
           route: AppConstants.historialRoute,
         ),
