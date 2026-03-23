@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
+import 'firebase_options.dart';
 
 /// Entry point of the application
 ///
@@ -33,6 +35,9 @@ Future<void> main() async {
       'Ensure .env contains SUPABASE_URL and SUPABASE_ANON_KEY.',
     );
   }
+
+  // Initialize Firebase — must run before runApp()
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Supabase
   await Supabase.initialize(

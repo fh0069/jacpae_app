@@ -97,6 +97,33 @@ class ApiClient {
     return _handleResponse(response);
   }
 
+  /// Performs a POST request with Bearer token authorization
+  ///
+  /// [endpoint] - API endpoint (e.g., '/devices/register')
+  /// [token] - Bearer token for authorization
+  /// [body] - Optional request body (will be JSON-encoded)
+  ///
+  /// Returns decoded JSON response, or null for 204 No Content
+  /// Throws [ApiException] subclasses for specific errors
+  Future<dynamic> post(
+    String endpoint, {
+    required String token,
+    Map<String, dynamic>? body,
+  }) async {
+    final uri = _buildUri(endpoint, null);
+
+    final response = await _httpClient.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body != null ? jsonEncode(body) : null,
+    );
+
+    return _handleResponse(response);
+  }
+
   /// Checks HTTP status code and throws typed exceptions on error
   void _checkResponseStatus(http.Response response) {
     final code = response.statusCode;

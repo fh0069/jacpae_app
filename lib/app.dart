@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/push/push_bootstrap_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/security/app_lock_controller.dart';
 import 'core/theme/app_theme.dart';
@@ -15,6 +16,8 @@ class App extends ConsumerWidget {
     // Eager initialization: ensures AppLockController is always instantiated
     // and its WidgetsBindingObserver registered from app startup.
     ref.watch(appLockControllerProvider);
+    // Eager initialization: registers FCM device token when AAL2 is reached.
+    ref.watch(pushBootstrapProvider);
     final router = ref.watch(AppRouter.provider);
 
     return MaterialApp.router(

@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"jacpae-app","appId":"1:931462034150:android:80b289962751ff81844127","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"jacpae-app","configurations":{"android":"1:931462034150:android:80b289962751ff81844127","ios":"1:931462034150:ios:18807bb80bec21f4844127"}}}}}}
