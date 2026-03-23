@@ -117,9 +117,17 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                   _ConsultaOptionCard(
                     icon: Icons.receipt_long,
                     title: 'Facturas',
-                    subtitle: 'Consulta tus facturas emitidas',
+                    subtitle: 'Consulta tus facturas',
                     enabled: true,
                     onTap: () => context.push(AppConstants.facturasRoute),
+                  ),
+                  const SizedBox(height: AppConstants.spacingM),
+                  _ConsultaOptionCard(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'Listado de facturas',
+                    subtitle: 'Resumen fiscal y totales',
+                    enabled: true,
+                    onTap: () => context.push('/vat'),
                   ),
                   const SizedBox(height: AppConstants.spacingM),
                   _ConsultaOptionCard(
