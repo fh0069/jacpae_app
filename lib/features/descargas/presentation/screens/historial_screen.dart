@@ -71,7 +71,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
               ),
               // Título
               const Text(
-                'Historial',
+                'Extracto',
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -118,7 +118,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.history_outlined,
+                        Icons.receipt_long_outlined,
                         size: 80,
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
