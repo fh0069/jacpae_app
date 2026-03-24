@@ -17,8 +17,8 @@ https://github.com/fh0069/jacpae_api
 
 ## 🎯 Project Overview
 
-**Version:** 1.0.0+1  
-**Status:** Production-ready security layer and backend-integrated modules (notifications & offers).
+**Version:** 1.0.0+1
+**Status:** Production-ready security layer, backend-integrated modules (notifications & offers), and FCM device registration base.
 
 ### Built with
 
@@ -40,6 +40,7 @@ lib/
 ├── core/
 │   ├── constants/
 │   ├── network/           # ApiClient + ApiException
+│   ├── push/              # FCM integration (PushService, PushApi, PushRepository, bootstrap)
 │   ├── router/            # GoRouter configuration + guards
 │   ├── security/          # App Lock + biometric integration
 │   ├── theme/
@@ -173,6 +174,65 @@ Downloaded PDFs:
 
 ---
 
+## 📲 Push Notifications (Base Integration)
+
+The app is prepared to receive push notifications via Firebase Cloud Messaging (FCM).
+This phase covers the registration infrastructure only — end-to-end push delivery is not yet active.
+
+### Setup
+
+Requires [FlutterFire CLI](https://firebase.flutter.dev/docs/cli):
+
+```bash
+dart pub global activate flutterfire_cli
+flutterfire configure
+```
+
+Generates `lib/firebase_options.dart`. Ensure `android/app/google-services.json` is present.
+
+### Current Flow
+
+1. User authenticates and reaches AAL2
+2. `push_bootstrap_provider` activates (eagerly initialized in `App`)
+3. FCM token is obtained via `FirebaseMessaging`
+4. `POST /devices/register` is called with the token and platform
+5. Backend inserts or reactivates the device in `push_devices`
+
+### Architecture
+
+| Component | Responsibility |
+|---|---|
+| `PushService` | FCM wrapper — token retrieval and refresh stream |
+| `PushApi` | HTTP call to `POST /devices/register` |
+| `PushRepository` | JWT extraction, platform resolution, API delegation |
+| `push_bootstrap_provider` | Orchestration — reacts to AAL2, handles cold-start and token rotation |
+
+### Validation
+
+- Validated on a real Android device
+- Device registration confirmed in `push_devices` table (Supabase)
+- Unit tests covering `PushRepository`, `PushApi`, and `ApiClient.post()`
+
+### Current Limitations
+
+The following are **not yet implemented**:
+
+- Push delivery from backend (FCM dispatch not integrated)
+- Foreground notification display
+- Tap-to-navigate (payload deep linking)
+- Permission request UX policy
+- iOS validation on real device
+
+### Next Phase
+
+- FCM integration in backend (dispatch jobs)
+- Foreground and background message handling in Flutter
+- Deep linking from notification payload
+- Permission request timing and UX policy
+- iOS device validation
+
+---
+
 ## 🚧 Business Modules Pending Full Backend
 
 The following modules use temporary fixtures until API integration:
@@ -264,7 +324,7 @@ Current state:
 
 ## 🧪 Testing
 
-Total: **19 unit tests – all passing.**
+Total: **28 unit tests – all passing.**
 
 The project includes unit tests covering the most critical application layers.
 
@@ -275,7 +335,9 @@ The project includes unit tests covering the most critical application layers.
 | Controller | `NotificationsController` | Pagination, optimistic updates, deduplication, error handling |
 | Repository | `NotificationsRepository` | Token handling, pagination logic, exception propagation |
 | Repository | `OffersRepository` | Auth validation and secure PDF download flow |
-| Core Network | `ApiClient` | HTTP status mapping, JSON decoding, binary responses |
+| Repository | `PushRepository` | JWT extraction, platform resolution, error propagation |
+| Data Source | `PushApi` | Request contract, path, body, exception propagation |
+| Core Network | `ApiClient` | HTTP status mapping, JSON decoding, binary responses, POST |
 
 ### Test Characteristics
 

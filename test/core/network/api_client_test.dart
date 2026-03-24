@@ -104,6 +104,88 @@ void main() {
   // ── Caso 5 ──────────────────────────────────────────────────────────────────
 
   test(
+    'post() 200 → devuelve JSON decodificado',
+    () async {
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => http.Response('{"status":"registered"}', 200));
+
+      final result = await apiClient.post(
+        '/devices/register',
+        token: 'abc',
+        body: {'device_token': 'fcm-xyz', 'platform': 'android'},
+      );
+
+      expect(result, {'status': 'registered'});
+    },
+  );
+
+  // ── Caso 6 ──────────────────────────────────────────────────────────────────
+
+  test(
+    'post() 201 → devuelve JSON decodificado',
+    () async {
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => http.Response('{"id":1}', 201));
+
+      final result = await apiClient.post('/resource', token: 'abc');
+
+      expect(result, {'id': 1});
+    },
+  );
+
+  // ── Caso 7 ──────────────────────────────────────────────────────────────────
+
+  test(
+    'post() 401 → lanza UnauthorizedException',
+    () async {
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => http.Response('', 401));
+
+      await expectLater(
+        apiClient.post('/devices/register', token: 'bad-token'),
+        throwsA(isA<UnauthorizedException>()),
+      );
+    },
+  );
+
+  // ── Caso 8 ──────────────────────────────────────────────────────────────────
+
+  test(
+    'post() 403 → lanza ForbiddenException',
+    () async {
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => http.Response('', 403));
+
+      await expectLater(
+        apiClient.post('/devices/register', token: 'abc'),
+        throwsA(isA<ForbiddenException>()),
+      );
+    },
+  );
+
+  // ── Caso 9 ──────────────────────────────────────────────────────────────────
+
+  test(
     'getBytes() 200 → devuelve bytes correctos',
     () async {
       final bytes = Uint8List.fromList([1, 2, 3, 4]);
