@@ -264,4 +264,35 @@ void main() {
       expect(ctrl.state.isLoadingMore, isFalse);
     },
   );
+
+  // ── Caso 8 — Regresión ───────────────────────────────────────────────────────
+
+  test(
+    'refresh() preserva isRead=true aunque el backend devuelva isRead=false para ese id',
+    () async {
+      // Primera carga: item '1' leído
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => _result([_item(id: '1', isRead: true)]));
+      await ctrl.refresh();
+      expect(ctrl.state.items.first.isRead, isTrue);
+
+      // Segunda carga (refresh): backend devuelve isRead=false (lag o campo ausente)
+      when(
+        () => repo.fetchNotifications(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => _result([_item(id: '1', isRead: false)]));
+      await ctrl.refresh();
+
+      // El flag local debe preservarse: no debe reaparecer como no leída
+      expect(ctrl.state.items.first.isRead, isTrue);
+      expect(ctrl.state.isLoading, isFalse);
+      expect(ctrl.state.errorMessage, isNull);
+    },
+  );
 }

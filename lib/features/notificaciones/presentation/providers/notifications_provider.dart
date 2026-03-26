@@ -92,9 +92,18 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   // ── Public API ─────────────────────────────────────────────────────────────
 
   /// Full refresh from page 0. Sets [isLoading], clears existing items.
+  ///
+  /// Read flags from the current state are captured before clearing so that
+  /// [_preserveLocalReadFlags] can apply them after the fetch.
+  /// Without this, state.items would be empty during the fetch and previously
+  /// read items would reappear as unread if the backend response lags.
   Future<void> refresh() async {
+    final preservedReadIds = {
+      for (final n in state.items)
+        if (n.isRead) n.id,
+    };
     state = const NotificationsState(isLoading: true);
-    await _fetchPage(fromOffset: 0, append: false);
+    await _fetchPage(fromOffset: 0, append: false, preservedReadIds: preservedReadIds);
   }
 
   /// Silent background refresh — does NOT set [isLoading].
@@ -225,6 +234,7 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   Future<void> _fetchPage({
     required int fromOffset,
     required bool append,
+    Set<String> preservedReadIds = const {},
   }) async {
     try {
       final result = await _repository.fetchNotifications(
@@ -232,7 +242,10 @@ class NotificationsController extends StateNotifier<NotificationsState> {
         offset: fromOffset,
       );
       if (!mounted) return;
-      final preserved = _preserveLocalReadFlags(result.items);
+      final preserved = _preserveLocalReadFlags(
+        result.items,
+        readIds: preservedReadIds.isNotEmpty ? preservedReadIds : null,
+      );
       final newItems =
           append ? _deduplicate(state.items, preserved) : preserved;
       state = NotificationsState(
@@ -273,15 +286,17 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   /// Prevents a refresh from reverting optimistic reads when the backend
   /// still returns read_at=null.
   List<NotificationItem> _preserveLocalReadFlags(
-    List<NotificationItem> incoming,
-  ) {
-    final localReadIds = {
-      for (final n in state.items)
-        if (n.isRead) n.id,
-    };
-    if (localReadIds.isEmpty) return incoming;
+    List<NotificationItem> incoming, {
+    Set<String>? readIds,
+  }) {
+    final ids = readIds ??
+        {
+          for (final n in state.items)
+            if (n.isRead) n.id,
+        };
+    if (ids.isEmpty) return incoming;
     return incoming
-        .map((n) => localReadIds.contains(n.id) ? n.copyWith(isRead: true) : n)
+        .map((n) => ids.contains(n.id) ? n.copyWith(isRead: true) : n)
         .toList();
   }
 
