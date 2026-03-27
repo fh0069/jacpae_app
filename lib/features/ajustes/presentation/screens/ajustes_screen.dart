@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../auth/data/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 
 /// Ajustes/Settings screen
 class AjustesScreen extends ConsumerStatefulWidget {
@@ -38,18 +39,21 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
   // ============================================
   // ESTADO LOCAL - Preferencias de notificaciones
   // ============================================
-  bool _avisoReparto = true;
   bool _avisoFacturaEmitida = true;
-  int _avisoGiroDias = 3; // Días antes del vencimiento
-  bool _recibirOfertas = false;
 
-  // Opciones para el dropdown de días
+  // Opciones para el selector de días de giro
   static const List<int> _opcionesDiasGiro = [0, 1, 3, 5, 7, 10, 15];
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(_lightStatusBarStyle);
+    // Sync from already-loaded profile to avoid showing hardcoded default
+    // when the user returns to this screen and the provider already has data.
+    final cachedProfile = ref.read(profileProvider).profile;
+    if (cachedProfile != null) {
+      _avisoFacturaEmitida = cachedProfile.avisarFacturaEmitida;
+    }
   }
 
   @override
@@ -110,6 +114,19 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+
+    // Sync local flag exactly once when profile loads from null → non-null.
+    // ref.listen fires synchronously on state change, avoiding addPostFrameCallback fragility.
+    ref.listen<ProfileState>(profileProvider, (prev, next) {
+      if (prev?.profile == null && next.profile != null) {
+        setState(() {
+          _avisoFacturaEmitida = next.profile!.avisarFacturaEmitida;
+        });
+      }
+    });
+
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _lightStatusBarStyle,
       child: AppScaffold(
@@ -135,8 +152,12 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
                 title: 'Aviso de reparto',
                 subtitle: 'Recibirá una notificación 2 días antes del reparto programado',
                 icon: Icons.local_shipping_outlined,
-                value: _avisoReparto,
-                onChanged: (value) => setState(() => _avisoReparto = value),
+                value: profileState.profile?.avisarReparto ?? false,
+                onChanged: profileState.profile == null
+                    ? null
+                    : (value) => ref
+                        .read(profileProvider.notifier)
+                        .updateAvisarReparto(value),
               ),
               const Divider(height: 1),
 
@@ -146,22 +167,87 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
                 subtitle: 'Recibir aviso al emitirse una nueva factura',
                 icon: Icons.receipt_long_outlined,
                 value: _avisoFacturaEmitida,
-                onChanged: (value) => setState(() => _avisoFacturaEmitida = value),
+                onChanged: profileState.isSaving
+                    ? null
+                    : (value) {
+                        setState(() => _avisoFacturaEmitida = value);
+                        ref
+                            .read(profileProvider.notifier)
+                            .updateAvisarFacturaEmitida(value);
+                      },
               ),
               const Divider(height: 1),
 
-              // C) Aviso de giro (selector de días)
-              _buildDropdownTile(
-                title: 'Aviso de giro',
-                subtitle: _formatDiasGiro(_avisoGiroDias),
-                icon: Icons.event_outlined,
-                value: _avisoGiroDias,
-                items: _opcionesDiasGiro,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _avisoGiroDias = value);
-                  }
-                },
+              // C) Aviso de giro + días
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.event_outlined),
+                    title: const Text('Aviso de giro'),
+                    subtitle: const Text(
+                      'Recibir aviso antes del vencimiento de un giro',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    trailing: Switch(
+                      value: profileState.profile?.avisarGiro ?? false,
+                      onChanged: profileState.profile == null
+                          ? null
+                          : (value) => ref
+                              .read(profileProvider.notifier)
+                              .updateAvisarGiro(value),
+                      activeTrackColor: AppColors.accent,
+                      activeThumbColor: Colors.white,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 56, right: 16, bottom: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _formatDiasGiro(profileState.profile?.diasAvisoGiro ?? 3),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        DropdownButton<int>(
+                          value: profileState.profile?.diasAvisoGiro ?? 3,
+                          underline: const SizedBox(),
+                          icon: const Icon(Icons.arrow_drop_down),
+                          onChanged: (profileState.profile?.avisarGiro ?? false)
+                              ? (value) {
+                                  if (value != null) {
+                                    ref
+                                        .read(profileProvider.notifier)
+                                        .updateDiasAvisoGiro(value);
+                                  }
+                                }
+                              : null,
+                          items: _opcionesDiasGiro.map((dias) {
+                            String label;
+                            if (dias == 0) {
+                              label = 'El mismo día';
+                            } else if (dias == 1) {
+                              label = '1 día';
+                            } else {
+                              label = '$dias días';
+                            }
+                            return DropdownMenuItem<int>(
+                              value: dias,
+                              child: Text(label),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const Divider(height: 1),
 
@@ -170,8 +256,12 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
                 title: 'Desea recibir ofertas',
                 subtitle: 'Recibir ofertas y comunicaciones comerciales',
                 icon: Icons.local_offer_outlined,
-                value: _recibirOfertas,
-                onChanged: (value) => setState(() => _recibirOfertas = value),
+                value: profileState.profile?.recibirOfertas ?? false,
+                onChanged: profileState.profile == null
+                    ? null
+                    : (value) => ref
+                        .read(profileProvider.notifier)
+                        .updateRecibirOfertas(value),
               ),
             ],
           ),
@@ -250,13 +340,9 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
   // ============================================
 
   String _formatDiasGiro(int dias) {
-    if (dias == 0) {
-      return 'El mismo día del vencimiento';
-    } else if (dias == 1) {
-      return '1 día antes del vencimiento';
-    } else {
-      return '$dias días antes del vencimiento';
-    }
+    if (dias == 0) return 'El mismo día del vencimiento';
+    if (dias == 1) return '1 día antes del vencimiento';
+    return '$dias días antes del vencimiento';
   }
 
   Widget _buildSection(BuildContext context, String title, List<Widget> children) {
@@ -303,7 +389,7 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
     required String subtitle,
     required IconData icon,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    ValueChanged<bool>? onChanged,
   }) {
     return ListTile(
       leading: Icon(icon),
@@ -324,44 +410,4 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
     );
   }
 
-  Widget _buildDropdownTile({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required int value,
-    required List<int> items,
-    required ValueChanged<int?> onChanged,
-  }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppColors.textSecondary,
-        ),
-      ),
-      trailing: DropdownButton<int>(
-        value: value,
-        underline: const SizedBox(),
-        icon: const Icon(Icons.arrow_drop_down),
-        items: items.map((dias) {
-          String label;
-          if (dias == 0) {
-            label = 'El mismo día';
-          } else if (dias == 1) {
-            label = '1 día';
-          } else {
-            label = '$dias días';
-          }
-          return DropdownMenuItem<int>(
-            value: dias,
-            child: Text(label),
-          );
-        }).toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
 }
