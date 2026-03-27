@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/providers/auth_provider.dart';
-import 'push_repository.dart';
-import 'push_service.dart';
+import '../../features/push/data/repositories/push_device_repository.dart';
+import '../services/push_service.dart';
 
 /// Infrastructure provider that registers the FCM device token with the backend.
 ///
@@ -15,20 +14,16 @@ import 'push_service.dart';
 ///   registration is triggered immediately.
 /// - Reacts to FCM token rotation via [PushService.onTokenRefresh] —
 ///   one subscription, cancelled on provider dispose.
-///
-/// Errors are silent to the user; traceable in debug mode only.
-/// Permission request is NOT called here — see [PushService.requestPermission].
 final pushBootstrapProvider = Provider<void>((ref) {
-  final repository = PushRepository.create(
+  final repository = PushDeviceRepository.create(
     apiBaseUrl: dotenv.env['API_BASE_URL'] ?? '',
   );
-  final service = PushService();
 
   // Subscribe to FCM token rotation.
   // Cancelled via ref.onDispose — no duplicate subscriptions on rebuild.
-  final tokenRefreshSub = service.onTokenRefresh.listen((newToken) {
+  final tokenRefreshSub = PushService.onTokenRefresh.listen((newToken) {
     if (ref.read(authStateProvider).isAAL2) {
-      _register(service: service, repository: repository, forcedToken: newToken);
+      _register(repository: repository, forcedToken: newToken);
     }
   });
   ref.onDispose(tokenRefreshSub.cancel);
@@ -37,35 +32,29 @@ final pushBootstrapProvider = Provider<void>((ref) {
   ref.listen<AuthStateModel>(authStateProvider, (prev, next) {
     final wasAAL2 = prev?.isAAL2 ?? false;
     if (!wasAAL2 && next.isAAL2) {
-      _register(service: service, repository: repository);
+      _register(repository: repository);
     }
   });
 
   // Handle cold-start: session already active when provider is first created.
   if (ref.read(authStateProvider).isAAL2) {
-    _register(service: service, repository: repository);
+    _register(repository: repository);
   }
 });
 
-/// Fire-and-forget registration. Silent on error, traceable in debug.
+/// Fire-and-forget registration. Silent on error.
 ///
 /// [forcedToken] is used when FCM rotation provides the token directly,
 /// skipping the [PushService.getToken] call.
 Future<void> _register({
-  required PushService service,
-  required PushRepository repository,
+  required PushDeviceRepository repository,
   String? forcedToken,
 }) async {
   try {
-    final token = forcedToken ?? await service.getToken();
-    if (token == null) {
-      if (kDebugMode) debugPrint('[Push] No FCM token available, skipping registration');
-      return;
-    }
+    final token = forcedToken ?? await PushService.getToken();
+    if (token == null) return;
     await repository.registerDevice(fcmToken: token);
-    if (kDebugMode) debugPrint('[Push] Device registered successfully');
-  } catch (e) {
+  } catch (_) {
     // Silent — push registration failure must never interrupt app flow.
-    if (kDebugMode) debugPrint('[Push] Registration failed: $e');
   }
 }
