@@ -28,7 +28,7 @@ class NotificationItem {
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
       createdAt: _parseDateTime(json['created_at']),
-      isRead: json['is_read'] as bool? ?? false,
+      isRead: json['read_at'] != null,
       data: json['data'] is Map<String, dynamic>
           ? json['data'] as Map<String, dynamic>
           : <String, dynamic>{},

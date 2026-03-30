@@ -14,7 +14,7 @@ import '../../features/notificaciones/presentation/providers/notifications_provi
 /// - App opened from push → [FirebaseMessaging.onMessageOpenedApp]
 ///
 /// The one-shot launch check ([FirebaseMessaging.instance.getInitialMessage])
-/// is handled separately in [pushBootstrapProvider] to guarantee it runs
+/// is handled separately in [pushInitialMessageProvider] to guarantee it runs
 /// exactly once at app startup.
 ///
 /// Eagerly initialised in [App.build] via ref.watch.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -86,6 +87,13 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       'No se pudieron cargar las notificaciones. '
       'Revisa tu conexión e inténtalo de nuevo.';
 
+  // Concurrency flags for silentRefresh coalescing.
+  // If a fetch is already running and another trigger arrives, _pendingRefresh
+  // is set to true. When the running fetch completes, exactly one more fetch
+  // is executed and the flag is cleared.
+  bool _refreshing = false;
+  bool _pendingRefresh = false;
+
   NotificationsController(this._repository)
       : super(const NotificationsState());
 
@@ -107,8 +115,18 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   }
 
   /// Silent background refresh — does NOT set [isLoading].
-  /// Used by HomeScreen on init. Failures are swallowed; badge just won't update.
+  /// Used by HomeScreen on init and push wake-up triggers.
+  /// Failures are swallowed; badge just won't update.
+  ///
+  /// Concurrent calls are coalesced: if a fetch is already running the new
+  /// trigger is recorded as pending, and exactly one additional fetch is
+  /// executed after the current one completes.
   Future<void> silentRefresh() async {
+    if (_refreshing) {
+      _pendingRefresh = true;
+      return;
+    }
+    _refreshing = true;
     try {
       final result = await _repository.fetchNotifications(
         limit: _limit,
@@ -123,6 +141,12 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       );
     } catch (_) {
       // Intentionally swallowed: Home must not show any error.
+    } finally {
+      _refreshing = false;
+      if (_pendingRefresh) {
+        _pendingRefresh = false;
+        unawaited(silentRefresh());
+      }
     }
   }
 
